@@ -8,6 +8,6 @@ This repository contains code for simulating quantum-like (QL) gates on graphs.
 - `requirements.txt`: Python packages to be installed
 
 ## Usage
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 
 Run `main.py` 
