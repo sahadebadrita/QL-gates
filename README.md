@@ -9,4 +9,5 @@ This repository contains code for simulating quantum-like (QL) gates on graphs.
 
 ## Usage
 pip install -r requirements.txt
+
 Run `main.py` 
