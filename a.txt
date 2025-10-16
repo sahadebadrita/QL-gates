@@ -1,0 +1,5 @@
+Building QL resource
+Applying two-qubit gate transformation...
+Shape of transformed adjacency: (576, 576)
+Hermitian check: True
+Unitary check: True
