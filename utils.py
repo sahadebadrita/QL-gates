@@ -212,6 +212,7 @@ def transform_R12(R, gate0, gate1, n, theta=None, U=None):
 	UCN = np.linalg.inv(Ucb2) @ (np.kron(Pp,U0) + np.kron(Pm,U1)) @ Ucb2
 	Rg =  UCN @ R @ UCN.T.conj()
 	return Rg
+
 #single qubit gate implementation
 def transform1(gate, n, theta=None, U=None):
 
@@ -225,7 +226,7 @@ def transform1(gate, n, theta=None, U=None):
 
 	return Ug
 
-# two qubit gate implementation
+# two qubit conditional gate implementation
 def transform2(gate0, gate1, n, theta=None, U=None):
 	"""""
 	Arguments:
@@ -291,6 +292,17 @@ def getRxxgate(n,NQL,theta1):
     UH = np.kron(VH,VH)
     URxx = UH @ URzz @UH
     return URzz
+
+#two qubit rotation gate implementation
+def transform1(gate, n, NQL, theta=None):
+    if gate == "Rxx":
+        Ug = getRxxgate(n,NQL,theta)
+    elif gate == "Ryy":
+        Ug = getRyygate(n,NQL,theta)
+    elif gate == "Rzz":
+        Ug = getRzzgate(n,NQL,theta)
+
+	return Ug
 
 def is_hermitian(M, label, rtol=1e-05, atol=1e-08):
 
