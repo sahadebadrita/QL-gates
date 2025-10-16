@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Main script for Quantum-Like (QL) graph gate simulations
-Author: [Your Name]
+Author: Deba and Ethan
 Date: [YYYY-MM-DD]
 
 This script builds QL adjacency matrices, applies two-qubit gate transformations,
@@ -113,5 +113,3 @@ if __name__ == "__main__":
         print("Shape of transformed adjacency:", Rg_CN.shape)
         print("Hermitian check:", np.allclose(Rg_CN, Rg_CN.T.conj(), atol=1e-10))
         print("Unitary check:", np.allclose((UCN @  UCN.T.conj()), np.eye(UCN.shape[0], dtype=UCN.dtype), atol=1e-10))
-
-
