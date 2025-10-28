@@ -294,15 +294,15 @@ def getRxxgate(n,NQL,theta1):
     return URzz
 
 #two qubit rotation gate implementation
-def transform1(gate, n, NQL, theta=None):
-    if gate == "Rxx":
-        Ug = getRxxgate(n,NQL,theta)
-    elif gate == "Ryy":
-        Ug = getRyygate(n,NQL,theta)
-    elif gate == "Rzz":
-        Ug = getRzzgate(n,NQL,theta)
-
-	return Ug
+#def two_qubit_gate(gate0=None,gate1=None, n, NQL, theta=None):
+#    if gate == "Rxx":
+#        Ug = getRxxgate(n,NQL,theta)
+#    elif gate == "Ryy":
+#        Ug = getRyygate(n,NQL,theta)
+#    elif gate == "Rzz":
+#        Ug = getRzzgate(n,NQL,theta)
+#
+#	return Ug
 
 def is_hermitian(M, label, rtol=1e-05, atol=1e-08):
 
