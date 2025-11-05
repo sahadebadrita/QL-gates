@@ -21,12 +21,17 @@ import matplotlib.cm as cm
 from scipy.linalg import expm, logm
 from scipy.integrate import solve_ivp
 from scipy.stats import unitary_group
+from scipy import sparse
 import igraph as ig
 import networkx as nx
 
 # Local module imports
 from utils import qldit, cart_qldit, transform1, transform2 # ensure utils.py exists in the same directory
-from gateslib import transform1_multi, cartesian_product_igraph
+from gateslib import transform1_multi, cartesian_product_igraph, cartesian_product_igraph1
+
+import tracemalloc
+tracemalloc.start()
+
 # ============================================================
 # Flags & Configuration
 # ============================================================
@@ -65,7 +70,7 @@ sigma = 0
 dt = 0.01
 Tmin = 0
 Tmax = 10 + dt
-NQL = 4
+NQL = 2
 Ntot = (2 * n) ** NQL
 Nt = int((Tmax - Tmin) / dt)
 t_eval = np.linspace(Tmin, Tmax, Nt)
@@ -82,6 +87,10 @@ x_diag = np.zeros((Ntot, Nt, Nt_q), dtype=complex)
 colormap_phi = cm.twilight
 nbins = 50
 
+# ============================================================
+# Filenames
+# ============================================================
+fname = f"n{n}_k{k}_l{l}_NQL{NQL}adj"
 # ============================================================
 # Helper: Apply two-qubit transformation
 # ============================================================
@@ -150,12 +159,20 @@ if __name__ == "__main__":
         print('Diff b/w Rg2 and Rg12',np.linalg.norm(Rg12-Rg2,'fro'))
 
     # Compute Cartesian product using igraph
-    G_total, A_total = cartesian_product_igraph([R, R, R, R], return_matrix=True)
+    G_total, A_total = cartesian_product_igraph1([R.copy() for _ in range(NQL)], return_matrix=True)
+    print('Non-zero elements:',np.count_nonzero(A_total))
+    sparse_matrix = sparse.csr_matrix(A_total)
+    sparse.save_npz(f'{fname}.npz', sparse_matrix, compressed=True)
+    print(f"Original dense array size (bytes): {A_total.nbytes}")
+    loaded_A_total = sparse.load_npz(f'{fname}.npz')
+    
+    #np.savetxt(f'{fname}.txt',A_total,fmt="%d")
     #print('Shape of adjacency matrix:',A_total.shape())
 
     Ug123 = transform1_multi('H', n, NQL, target_idx=0, theta=None, U=None)
     Rg123 = Ug123 @ A_total @ Ug123.T.conj()
     if CHECK:
+        print("Check sparse matrix loading", np.linalg.norm(A_total-loaded_A_total,'fro'))
         print("Shape of transformed adjacency:", Rg123.shape)
         print("Shape of transformation matrix:", Ug123.shape)
         print("Hermitian check:", np.allclose(Rg123, Rg123.T.conj(), atol=1e-10))

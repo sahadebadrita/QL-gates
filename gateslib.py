@@ -12,6 +12,8 @@ from scipy.integrate import solve_ivp
 from scipy.stats import unitary_group
 import igraph as ig
 import networkx as nx
+from concurrent.futures import ProcessPoolExecutor
+from scipy import sparse
 
 GATE_LIBRARY = {
     "I": lambda theta=None: np.eye(2, dtype=complex),
@@ -166,7 +168,7 @@ def transform1_multi(gate, n, NQL, target_idx=0, theta=None, U=None):
 
     return U_total
 
-def cartesian_product_igraph(adj_list, directed=False, return_matrix=False):
+def cartesian_product_igraph1(adj_list, directed=False, return_matrix=False):
     """
     Compute the Cartesian product of multiple adjacency matrices using igraph.
 
@@ -206,6 +208,63 @@ def cartesian_product_igraph(adj_list, directed=False, return_matrix=False):
     if return_matrix:
         A_total = nx.to_numpy_array(G_total)
         print(A_total.shape)
+        return G_total, A_total
+    else:
+        return G_total
+
+
+def cartesian_product_igraph(adj_list, directed=False, return_matrix=False, use_sparse=True):
+    """
+    Compute the Cartesian product of multiple adjacency matrices using NetworkX
+    with optional parallelization and sparse matrix support.
+
+    Parameters
+    ----------
+    adj_list : list of np.ndarray
+        List of adjacency matrices [A1, A2, ..., Am]
+    directed : bool, optional
+        Whether to treat graphs as directed (default: False)
+    return_matrix : bool, optional
+        If True, also return the final adjacency matrix
+    use_sparse : bool, optional
+        Use sparse matrices for efficiency (default: True)
+
+    Returns
+    -------
+    G_total : nx.Graph
+        Cartesian product of all graphs
+    A_total : np.ndarray or scipy.sparse matrix (optional)
+        Adjacency matrix of the product
+    """
+
+    if len(adj_list) < 2:
+        raise ValueError("Need at least two adjacency matrices for Cartesian product.")
+
+    # Step 1: Convert adjacency matrices to NetworkX graphs
+    graphs = [nx.from_numpy_array(A) for A in adj_list]
+
+    # Step 2: Parallel pairwise Cartesian products
+    def pair_product(g1, g2):
+        return nx.cartesian_product(g1, g2)
+
+    with ProcessPoolExecutor() as executor:
+        temp_graphs = graphs
+        while len(temp_graphs) > 1:
+            pairs = [(temp_graphs[i], temp_graphs[i+1]) for i in range(0, len(temp_graphs)-1, 2)]
+            results = list(executor.map(lambda p: pair_product(*p), pairs))
+            if len(temp_graphs) % 2 == 1:
+                results.append(temp_graphs[-1])
+            temp_graphs = results
+
+    G_total = temp_graphs[0]
+
+    # Step 3: Optionally return adjacency matrix
+    if return_matrix:
+        if use_sparse:
+            A_total = nx.to_scipy_sparse_array(G_total, format='csr')
+        else:
+            A_total = nx.to_numpy_array(G_total)
+        print("Adjacency matrix shape:", A_total.shape)
         return G_total, A_total
     else:
         return G_total
