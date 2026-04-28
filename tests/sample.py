@@ -1,10 +1,10 @@
 import numpy as np
 import os, sys
 
-folder_path1 = os.path.abspath('../')
-sys.path.append(folder_path1)
-#from qlgates.your_module import getRzzgate   # adjust import
-from utils import getRzzgate   # adjust import
+#folder_path1 = os.path.abspath('../')
+#sys.path.append(folder_path1)
+from qlgates.utils import getRzzgate   # adjust import
+#from utils import getRzzgate   # adjust import
 
 def test_rzz_shape():
     n = 2

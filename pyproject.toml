@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "qlgates"
+version = "0.1.0"
+description = "QL-gates library"
+authors = [{name = "Debadrita Saha"}]
+dependencies = ["numpy"]

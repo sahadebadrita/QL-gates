@@ -1,0 +1,7 @@
+README.md
+pyproject.toml
+src/qlgates.egg-info/PKG-INFO
+src/qlgates.egg-info/SOURCES.txt
+src/qlgates.egg-info/dependency_links.txt
+src/qlgates.egg-info/requires.txt
+src/qlgates.egg-info/top_level.txt
