@@ -287,6 +287,13 @@ def cnot(n, theta=None, U=None):
 
 
 def getRzzgate(n,NQL,theta1):
+    """
+    Generates Rzz gate matrix for QL-bits
+    Parameters:
+    n: number of nodes in QL-bit subgraph
+    NQL: number of QL-bits
+    theta1: arg for arbitray angle
+    """
     #Get UCN
     UCN = transform2('I', 'x', n, theta=None, U=None)
     #get Rz
