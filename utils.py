@@ -77,7 +77,8 @@ def cart_qldit(n,d,adj_mat1,adj_mat2):
     adj_mat1 : adjacency matrix for QL-dit 1
     adj_mat2 : adjacency matrix for QL-dit 2
     """
-    adj_matrix_cart_kron = np.kron(np.eye(int((d+1)*n)),adj_mat2) + np.kron(adj_mat1,np.eye(int((d+1)*n)))
+    #adj_matrix_cart_kron = np.kron(np.eye(int((d+1)*n)),adj_mat2) + np.kron(adj_mat1,np.eye(int((d+1)*n)))
+    adj_matrix_cart_kron = np.kron(np.eye(adj_mat1.shape[0]),adj_mat2) + np.kron(adj_mat1,np.eye(adj_mat2.shape[0]))
     return adj_matrix_cart_kron
 
 #Scripts that relate to gate transformations -- both single and two qubit
@@ -226,53 +227,69 @@ def transform1(gate, n, theta=None, U=None):
 
 	return Ug
 
-# two qubit conditional gate implementation
 def transform2(gate0, gate1, n, theta=None, U=None):
-	"""""
-	Arguments:
-	R: Adjacency matrix for the Cartesian Product of two graphs
-	gate0: Conditional gate on target when condition is 0
-	gate1: Conditional gate on target when condition is 1
-	n: Number of nodes in each subgraph
+    """
+    Arguments:
+        gate0 : Conditional gate on target when condition is 0
+        gate1 : Conditional gate on target when condition is 1
+        n     : Number of nodes in each subgraph
+        theta : Optional parameter
+        U     : Optional unitary
+    """
 
-	"""""
-	#create transformation matrix for N_QL bits
-	VH = get_Vg("H")	#transformation matrix
-	Ucb1 = np.kron(VH, np.identity(n))
-	Ucb2 = np.kron(Ucb1,Ucb1)
+    # create transformation matrix for N_QL bits
+    VH = get_Vg("H")
+    Ucb1 = np.kron(VH, np.eye(n))
+    Ucb2 = np.kron(Ucb1, Ucb1)
 
-	Pp = np.zeros((2*n,2*n))		##create the projector of 0
-	Id = np.identity(n)
+    # create the projector of 0
+    Pp = np.zeros((2 * n, 2 * n))
+    Id = np.eye(n)
 
-	Pp[0:n,0:n] = Id
-	Pp[n:2*n,0:n] = Id
-	Pp[0:n,n:2*n] = Id
-	Pp[n:2*n,n:2*n] = Id
-	Pp *= 0.5
+    Pp[0:n, 0:n] = Id
+    Pp[n:2*n, 0:n] = Id
+    Pp[0:n, n:2*n] = Id
+    Pp[n:2*n, n:2*n] = Id
+    Pp *= 0.5
 
-	Pm = Pp.copy()
+    # create the projector of 1
+    Pm = Pp.copy()
+    Pm[n:2*n, 0:n] *= -1
+    Pm[0:n, n:2*n] *= -1
 
-	Pm[n:2*n,0:n] *= -1		##create the projector of 1
-	Pm[0:n,n:2*n] *= -1
+    V0 = get_Vg(gate0, theta, U)
+    V1 = get_Vg(gate1, theta, U)
 
-	V0 = get_Vg(gate0,theta,U)	#single qubit gate to be implemented
-	V1 = get_Vg(gate1,theta,U)	#single qubit gate to be implemented
+    #U0 = np.kron(V0, Id)
+    #U1 = np.kron(V1, Id)
 
-	U0 = np.kron(V0,Id)
-	U1 = np.kron(V1,Id)
+    #UCN = np.linalg.inv(Ucb2) @ (np.kron(Pp, U0) + np.kron(Pm, U1)) @ Ucb2
+    U0 = transform1(gate0, n, theta=None, U=None)
+    U1 = transform1(gate1, n, theta=None, U=None)
+    UCN = (np.kron(Pp, U0) + np.kron(Pm, U1))
 
-	UCN = np.linalg.inv(Ucb2) @ (np.kron(Pp,U0) + np.kron(Pm,U1)) @ Ucb2
-	#Rg =  UCN @ R @ UCN.T.conj()
-	return UCN
+    return UCN
+
+def cnot(n, theta=None, U=None):
+    UI = transform1('I', n, theta=None,U = None)
+    UX = transform1('x', n, theta=None,U = None)
+    UZ = transform1('z', n, theta=None,U = None)
+    Pp = UI+UZ
+    Pm = UI-UZ
+    cnot = 0.5*(np.kron(Pp,UI)+np.kron(Pm,UX))
+    return cnot
+
 
 def getRzzgate(n,NQL,theta1):
     #Get UCN
     UCN = transform2('I', 'x', n, theta=None, U=None)
     #get Rz
     Rz = transform1('Rz', n, theta=theta1,U = None)
-    URz = np.kron(np.identity((2*n)**(NQL-1)),Rz)
+    #get UI
+    UI = transform1('I', n, theta=None,U = None)
+    URz = np.kron(UI,Rz)
+    #URz = np.kron(np.identity((2*n)**(NQL-1)),Rz)
     URzz = UCN @ URz @ UCN
-    print(np.shape(UCN),np.shape(Rz),np.shape(URz))
     return URzz
 
 def getRyygate(n,NQL,theta1):
