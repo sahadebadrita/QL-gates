@@ -1,6 +1,0 @@
-Metadata-Version: 2.4
-Name: qlgates
-Version: 0.1.0
-Summary: QL-gates library
-Author: Debadrita Saha
-Requires-Dist: numpy
