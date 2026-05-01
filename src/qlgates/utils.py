@@ -216,16 +216,21 @@ def transform_R12(R, gate0, gate1, n, theta=None, U=None):
 	Rg =  UCN @ R @ UCN.T.conj()
 	return Rg
 
-#single qubit gate implementation
 def transform1(gate, n, theta=None, U=None):
+    """
+    single QL-bit  gate matrix
+    Parameters:
+    gate: gate name
+    n: number of nodes in QL-bit subgraph
+    theta: arg for arbitray angle
+    U: Optional unitary
+    """
 
 	VH = get_Vg("H")
 	Vg = get_Vg(gate,theta,U)
 	Ucb = np.kron(VH, np.identity(n))
 	Ug =  (np.linalg.inv(Ucb) @
 	np.kron(Vg,np.identity(n)) @ Ucb)
-
-	#Rg =  Ug @ R @ Ug.T.conj()
 
 	return Ug
 
@@ -273,6 +278,13 @@ def transform2(gate0, gate1, n, theta=None, U=None):
     return UCN
 
 def cnot(n, theta=None, U=None):
+    """
+    Standalone script for CNOT gate matrix for QL-bits
+    Parameters:
+    n: number of nodes in QL-bit subgraph
+    theta: arg for arbitray angle, set to None
+    U : Matrix to compare to, set to None here
+    """
     UI = transform1('I', n, theta=None,U = None)
     UX = transform1('x', n, theta=None,U = None)
     UZ = transform1('z', n, theta=None,U = None)
@@ -302,6 +314,13 @@ def getRzzgate(n,NQL,theta1):
     return URzz
 
 def getRyygate(n,NQL,theta1):
+    """
+    Generates Ryy gate matrix for QL-bits
+    Parameters:
+    n: number of nodes in QL-bit subgraph
+    NQL: number of QL-bits
+    theta1: arg for arbitray angle
+    """
     URzz = getRzzgate(n,NQL,theta1)
     #Get UCN
     Rx_p = transform1('Rx', n, theta=1.57,U = None)
@@ -312,6 +331,13 @@ def getRyygate(n,NQL,theta1):
     return URzz
 
 def getRxxgate(n,NQL,theta1):
+    """
+    Generates Rxx gate matrix for QL-bits
+    Parameters:
+    n: number of nodes in QL-bit subgraph
+    NQL: number of QL-bits
+    theta1: arg for arbitray angle
+    """
     URzz = getRzzgate(n,NQL,theta1)
     #get the Hadamard gate
     VH = transform1('H', n, theta=None,U = None)
