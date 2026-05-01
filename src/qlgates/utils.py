@@ -218,21 +218,32 @@ def transform_R12(R, gate0, gate1, n, theta=None, U=None):
 
 def transform1(gate, n, theta=None, U=None):
     """
-    single QL-bit  gate matrix
-    Parameters:
-    gate: gate name
-    n: number of nodes in QL-bit subgraph
-    theta: arg for arbitray angle
-    U: Optional unitary
+    Single QL-bit gate matrix.
+
+    Parameters
+    ----------
+    gate : str
+        Gate name.
+    n : int
+        Number of nodes in QL-bit subgraph.
+    theta : float, optional
+        Argument for arbitrary-angle gates.
+    U : np.ndarray, optional
+        Optional unitary.
     """
 
-	VH = get_Vg("H")
-	Vg = get_Vg(gate,theta,U)
-	Ucb = np.kron(VH, np.identity(n))
-	Ug =  (np.linalg.inv(Ucb) @
-	np.kron(Vg,np.identity(n)) @ Ucb)
+    VH = get_Vg("H")
+    Vg = get_Vg(gate, theta, U)
 
-	return Ug
+    Ucb = np.kron(VH, np.identity(n))
+
+    Ug = (
+        np.linalg.inv(Ucb)
+        @ np.kron(Vg, np.identity(n))
+        @ Ucb
+    )
+
+    return Ug
 
 def transform2(gate0, gate1, n, theta=None, U=None):
     """
