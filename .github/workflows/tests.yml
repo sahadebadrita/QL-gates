@@ -27,4 +27,4 @@ jobs:
       run: pip install pytest
 
     - name: Run tests
-      run: python -m pytest --cov=qlgates --cov-report=html
+      run: python -m pytest --cov=src/qlgates --cov-report=html
