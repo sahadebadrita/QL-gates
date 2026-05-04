@@ -1,13 +1,31 @@
-# QL Gates Simulation
+# Python tools for constructing and studying quantum-like (QL) gate operations
 
-This repository contains code for simulating quantum-like (QL) gates on graphs.
+This repository contains code for simulating quantum-like (QL) gates on QL-bits generated from coupled k-regular graphs.
 
 ## Contents
-- `utils.py`: Functions for gate definitions and transformations
-- `main.py`: Main script
-- `requirements.txt`: Python packages to be installed
+QL-gates/
+│
+├── src/
+│   └── qlgates/
+│       ├── config.py
+│       ├── gates.py
+│       ├── graphs.py
+│
+├── tests/
+│
+├── scripts/
+│
+├── configs/
+│
+├── .github/workflows/
+│
+├── pyproject.toml
+└── README.md
 
-## Usage
-pip3 install -r requirements.txt
+## Installation
 
-Run `main.py` 
+```bash
+git clone git@github.com:sahadebadrita/QL-gates.git
+cd QL-gates
+
+python -m pip install -e .
