@@ -24,7 +24,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Install pytest
-      run: pip install pytest
+      run: pip install pytest pytest-cov
 
     - name: Run tests
       run: python -m pytest --cov=src/qlgates --cov-report=html
