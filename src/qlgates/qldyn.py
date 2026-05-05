@@ -201,3 +201,18 @@ def transverseN(n, NQL, J, h, dt,debug):
 
     Ug = URx @ Uzz0 @ Uzz1 @ Uzz0 @ URx
     return Ug
+
+def propagate_state(cfg,psi):
+    print('Propagate_state')
+    Ntot = (2 * cfg.n) ** cfg.NQL
+    Ug = transverseN(cfg.n, cfg.NQL, cfg.J, cfg.h, cfg.deltat,debug=False)
+    #Ug = xymodel2(cfg.n,cfg.NQL,cfg.J,cfg.deltat)
+    psit = np.empty((Ntot,cfg.timesteps),dtype=complex)
+    psit[:,0] = psi
+    print(cfg.timesteps)
+    for step in range(1,cfg.timesteps,1):
+        print('yyyy')
+        print("time", step*cfg.deltat,flush=True)
+        psit[:,step] = Ug @ psit[:,step-1]
+
+    return psit
