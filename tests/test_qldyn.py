@@ -2,7 +2,7 @@ import numpy as np
 import os, sys
 import pytest
 
-from qlgates.qldyn import transverse, transverseN
+from qlgates.qldyn import transverseN
 
 def test_transverseN(small_config):
     U = transverseN(
