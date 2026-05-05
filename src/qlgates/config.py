@@ -23,3 +23,7 @@ class Config:
     def __post_init__(self):
         self.l = int((self.k - 2 * np.sqrt(self.k - 1)) / 2)
         self.lp = self.l - 1
+
+    # --- Hamiltonian ---
+    J: float = -1.0
+    h: float = 2.0
