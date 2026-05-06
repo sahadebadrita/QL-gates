@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import linalg
 import json
-from qlgates.gates import transform1, getRzzgate
+from qlgates.gates import transform1, transform2, getRzzgate
 
 def jbparams(N,filename):
     # --- Generate only unique (i < j) pairs ---
@@ -217,3 +217,51 @@ def propagate_state(cfg,psi):
         psit[:,step] = Ug @ psit[:,step-1]
 
     return psit
+
+def bell_state(cfg, psi0, kind="phi_plus"):
+    """
+    Generate a chosen Bell basis state starting from |00>.
+
+    Parameters
+    ----------
+    cfg : object
+        System configuration.
+
+    psi0 : ndarray
+        Must be |00...0> state.
+
+    kind : str
+        One of:
+            'phi_plus'  -> |Φ⁺⟩
+            'phi_minus' -> |Φ⁻⟩
+            'psi_plus'  -> |Ψ⁺⟩
+            'psi_minus' -> |Ψ⁻⟩
+
+    Returns
+    -------
+    ndarray
+        Bell state vector.
+    """
+
+    UH = transform1("H", cfg.n)
+    UI = transform1("I", cfg.n)
+    CNOT = transform2("I", "x", cfg.n)
+
+    # Bell entangling circuit
+    Ubell = CNOT @ np.kron(UH, UI)
+
+    # Apply circuit to |00>
+    phi_plus = Ubell @ psi0
+
+    # Generate other Bell states via local ops on qubit 0
+    ops = {
+        "phi_plus": np.kron(transform1("I", cfg.n), UI),
+        "phi_minus": np.kron(transform1("z", cfg.n), UI),
+        "psi_plus": np.kron(transform1("x", cfg.n), UI),
+        "psi_minus": np.kron(transform1("z", cfg.n) @ transform1("x", cfg.n), UI),
+    }
+
+    if kind not in ops:
+        raise ValueError(f"Unknown Bell state: {kind}")
+
+    return ops[kind] @ phi_plus
