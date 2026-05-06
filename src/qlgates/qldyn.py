@@ -218,30 +218,50 @@ def propagate_state(cfg,psi):
 
     return psit
 
-def bell_state1(cfg,psi,idx):
-    Ntot = (2 * cfg.n) ** cfg.NQL
-    UH = transform1('H', cfg.n, theta=None, U=None)
-    UI = transform1('I', cfg.n, theta=None, U=None)
-    UCN = transform2("I", "x", cfg.n, theta=None, U=None)
-    if idx == 'I':
-        print('I')
-        #psit = UCN @ np.kron(UH,UI) @ psi
-        psit = psi
-    elif idx == 'x':
-        print('x')
-        Ux = transform1('x', cfg.n, theta=None, U=None)
-        #psit = UCN @ np.kron(UH,UI) @ np.kron(Ux,UI) @ psi
-        psit = np.kron(Ux,UI) @ psi
-    elif idx == 'z':
-        print('z')
-        Uz = transform1('z', cfg.n, theta=None, U=None)
-        #psit = UCN @ np.kron(UH,UI) @ np.kron(Uz,UI) @ psi
-        psit = np.kron(Uz,UI) @ psi
-    elif idx == 'y':
-        print('y')
-        Ux = transform1('x', cfg.n, theta=None, U=None)
-        Uz = transform1('z', cfg.n, theta=None, U=None)
-        #psit = UCN @ np.kron(UH,UI) @ np.kron((Uz @ Ux),UI) @ psi
-        psit = np.kron((Uz @ Ux),UI) @ psi
+def bell_state(cfg, psi0, kind="phi_plus"):
+    """
+    Generate a chosen Bell basis state starting from |00>.
 
-    return psit
+    Parameters
+    ----------
+    cfg : object
+        System configuration.
+
+    psi0 : ndarray
+        Must be |00...0> state.
+
+    kind : str
+        One of:
+            'phi_plus'  -> |Φ⁺⟩
+            'phi_minus' -> |Φ⁻⟩
+            'psi_plus'  -> |Ψ⁺⟩
+            'psi_minus' -> |Ψ⁻⟩
+
+    Returns
+    -------
+    ndarray
+        Bell state vector.
+    """
+
+    UH = transform1("H", cfg.n)
+    UI = transform1("I", cfg.n)
+    CNOT = transform2("I", "x", cfg.n)
+
+    # Bell entangling circuit
+    Ubell = CNOT @ np.kron(UH, UI)
+
+    # Apply circuit to |00>
+    phi_plus = Ubell @ psi0
+
+    # Generate other Bell states via local ops on qubit 0
+    ops = {
+        "phi_plus": np.kron(transform1("I", cfg.n), UI),
+        "phi_minus": np.kron(transform1("z", cfg.n), UI),
+        "psi_plus": np.kron(transform1("x", cfg.n), UI),
+        "psi_minus": np.kron(transform1("z", cfg.n) @ transform1("x", cfg.n), UI),
+    }
+
+    if kind not in ops:
+        raise ValueError(f"Unknown Bell state: {kind}")
+
+    return ops[kind] @ phi_plus
