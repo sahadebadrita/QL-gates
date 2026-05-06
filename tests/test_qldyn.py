@@ -16,18 +16,23 @@ def test_transverseN(small_config):
     assert U.shape == ((2*small_config.n)**small_config.NQL, (2*small_config.n)**small_config.NQL)
 
 def test_bell_state_norm(cfg, psi0):
-    psi = bell_state(cfg, psi0, "x")
+    psi = bell_state(cfg, psi0, "phi_plus")
 
-    assert psi.shape[0] == (2 * cfg.n) ** 2
     assert np.isclose(
         np.vdot(psi, psi),
         1.0
     )
 
 def test_bell_orthogonality(cfg, psi0):
-    psi1 = bell_state(cfg, psi0, "I")
-    psi2 = bell_state(cfg, psi0, "x")
+    psi1 = bell_state(cfg, psi0, "phi_plus")
+    psi2 = bell_state(cfg, psi0, "phi_minus")
 
     overlap = np.vdot(psi1, psi2)
 
     assert np.isclose(overlap, 0.0)
+
+def test_bell_state_shape(cfg, psi0):
+
+    psi = bell_state(cfg, psi0, "psi_minus")
+
+    assert psi.shape == psi0.shape

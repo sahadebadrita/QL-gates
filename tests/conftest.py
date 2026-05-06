@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 from qlgates.config import Config
 
@@ -13,3 +14,22 @@ def small_config():
         NQL=2,
         CartPdt=True
     )
+
+class MockConfig:
+    n = 2
+    NQL = 2
+
+
+@pytest.fixture
+def cfg():
+    return MockConfig()
+
+@pytest.fixture
+def psi0(cfg):
+
+    dim = (2 * cfg.n) ** cfg.NQL
+
+    psi = np.ones(dim, dtype=complex)
+    psi /= np.linalg.norm(psi)
+
+    return psi

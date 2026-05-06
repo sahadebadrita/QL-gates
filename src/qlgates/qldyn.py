@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import linalg
 import json
-from qlgates.gates import transform1, getRzzgate
+from qlgates.gates import transform1, transform2, getRzzgate
 
 def jbparams(N,filename):
     # --- Generate only unique (i < j) pairs ---
