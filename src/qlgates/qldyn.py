@@ -217,3 +217,31 @@ def propagate_state(cfg,psi):
         psit[:,step] = Ug @ psit[:,step-1]
 
     return psit
+
+def bell_state1(cfg,psi,idx):
+    Ntot = (2 * cfg.n) ** cfg.NQL
+    UH = transform1('H', cfg.n, theta=None, U=None)
+    UI = transform1('I', cfg.n, theta=None, U=None)
+    UCN = transform2("I", "x", cfg.n, theta=None, U=None)
+    if idx == 'I':
+        print('I')
+        #psit = UCN @ np.kron(UH,UI) @ psi
+        psit = psi
+    elif idx == 'x':
+        print('x')
+        Ux = transform1('x', cfg.n, theta=None, U=None)
+        #psit = UCN @ np.kron(UH,UI) @ np.kron(Ux,UI) @ psi
+        psit = np.kron(Ux,UI) @ psi
+    elif idx == 'z':
+        print('z')
+        Uz = transform1('z', cfg.n, theta=None, U=None)
+        #psit = UCN @ np.kron(UH,UI) @ np.kron(Uz,UI) @ psi
+        psit = np.kron(Uz,UI) @ psi
+    elif idx == 'y':
+        print('y')
+        Ux = transform1('x', cfg.n, theta=None, U=None)
+        Uz = transform1('z', cfg.n, theta=None, U=None)
+        #psit = UCN @ np.kron(UH,UI) @ np.kron((Uz @ Ux),UI) @ psi
+        psit = np.kron((Uz @ Ux),UI) @ psi
+
+    return psit
