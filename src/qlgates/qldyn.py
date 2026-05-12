@@ -1,10 +1,20 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy import linalg
+import logging
 import json
-from qlgates.gates import transform1, transform2, getRzzgate
+from qlgates.gates import transform1, transform2, getRzzgate, getRyygate, getRxxgate
 
-def jbparams(N,filename):
+def jbparams(N, filename):
+    """
+    Generate random coupling and local field parameters for a spin system and save them as JSON files.
+
+    Parameters:
+    N : int - Number of sites/spins in the system.
+    filename : str - Path to the directory where the parameter files will be saved.
+
+    Returns:
+    J : dict - Dictionary containing random pairwise coupling parameters for the x, y, and z channels.
+    B : dict - Dictionary containing random local field parameters for the x, y, and z channels.
+    """
     # --- Generate only unique (i < j) pairs ---
     pairs = [(i, j) for i in range(N) for j in range(i+1, N)]
 
@@ -29,7 +39,17 @@ def jbparams(N,filename):
             json.dump(B, f2)
     return J,B
 
-def ising_hamiltonian(J,B):
+def ising_hamiltonian(J, B):
+    """
+    Construct the Ising Hamiltonian matrix with pairwise interactions and local field terms.
+
+    Parameters:
+    J : dict - Dictionary containing interaction matrices for the x, y, and z Pauli channels.
+    B : dict - Dictionary containing local field vectors for the x, y, and z Pauli channels.
+
+    Returns:
+    H : np.ndarray - Full Hamiltonian matrix of the spin system.
+    """
     # Define Pauli matrices
     I = np.eye(2, dtype=complex)
     paulis = {
@@ -81,33 +101,48 @@ def ising_hamiltonian(J,B):
     return H
 
 
-def xymodel2(n,NQL,J,dt):
-    '''
-    using the N-step second order Trotter-Suzuki decomp. to
-    create the Trotterized circuit for XY model Hamiltonian
-    for a system of 2 spins only
+def xymodel_two_qubit_trotter(n, NQL, J, dt):
+    """
+    Construct the second-order Trotter-Suzuki unitary for a two-spin XY model Hamiltonian.
 
-    Arg: J - interaction strength
-    '''
-    #only even terms present
-    Jtheta = 2*J*dt
-    rxx = getRxxgate(n,NQL,Jtheta/2)
-    ryy = getRyygate(n,NQL,Jtheta)
+    Parameters:
+    n : int - Number of levels in each QL-dit.
+    NQL : int - Number of QL-dits in the system.
+    J : float - Interaction strength of the XY model.
+    dt : float - Time-step used in the Trotter-Suzuki decomposition.
+
+    Note:
+    The Trotterization angles are intentionally asymmetric: `getRxxgate` is called with `J_theta / 2` and `getRyygate` is called with `J_theta`.
+    This follows the standard second-order Trotter-Suzuki decomposition for the XY model, where the X interaction is split into two half steps and the Y interaction is applied as a full step.
+
+    Returns:
+    Ug : np.ndarray - Trotterized unitary matrix for the two-spin XY model evolution.
+        The shape of Ug is (2*n**NQL, 2*n**NQL), where n is the number of levels per QL-dit and NQL is the number of QL-dits.
+    """
+    J_theta = 2 * J * dt
+    rxx = getRxxgate(n, NQL, J_theta / 2)
+    ryy = getRyygate(n, NQL, J_theta)
     Ug = rxx @ ryy @ rxx
     return Ug
 
-def transverse2(n,NQL,J,h,dt):
-    '''
-    using the N-step second order Trotter-Suzuki decomp. to
-    create the Trotterized circuit for transverse model Hamiltonian
-    for a system of 2 spins only
-    Arg: J - interaction strength
-    h - onsite interaction term
-    '''
+def transverse_two_qubit_trotter(n, NQL, J, h, dt):
+    """
+    Construct the second-order Trotter-Suzuki unitary for a two-spin transverse Ising-like Hamiltonian.
+
+    Parameters:
+    n : int - Number of levels in each QL-dit.
+    NQL : int - Number of QL-dits in the system.
+    J : float - Interaction strength for the ZZ interaction term.
+    h : float - Transverse field strength for the onsite X term.
+    dt : float - Time-step used in the Trotter-Suzuki decomposition.
+
+    Returns:
+    Ug : np.ndarray - Trotterized unitary matrix for the two-spin transverse model evolution.
+    """
     #only even terms present
     Jtheta = 2*J*dt
     htheta = 2*h*(dt/2)
-    Rx = transform1('Rx', n, theta=htheta,U = None)
+    Rx = transform1('Rx', n, theta=htheta, U=None)
     URx = np.kron(Rx,Rx)
     rzz = getRzzgate(n,NQL,Jtheta)
     Ug = URx @ rzz @ URx
@@ -115,45 +150,49 @@ def transverse2(n,NQL,J,h,dt):
 
 def kron_power(U, reps):
     """
-    Compute U ⊗ U ⊗ ... ⊗ U (reps times).
-    If reps = 1, returns U.
+    Compute the repeated Kronecker product of a square matrix with itself.
+
+    Parameters:
+    U : np.ndarray - Input square matrix (shape (d, d)) to be tensor-product repeated.
+    reps : int - Number of Kronecker product repetitions.
+
+    Returns:
+    Ug : np.ndarray - Matrix of shape (d**reps, d**reps) corresponding to U ⊗ U ⊗ ... ⊗ U (reps times).
     """
     if reps < 1:
         raise ValueError("reps must be >= 1")
-    Ug = U
+    result = U
     for _ in range(reps - 1):
-        Ug = np.kron(Ug, U)
-    return Ug
+        result = np.kron(result, U)
+    return result
 
 
-def transverseN(n, NQL, J, h, dt,debug):
+def transverseN(n, NQL, J, h, dt, debug):
     """
-    Second-order Trotter-Suzuki step for transverse Ising-like model
-    in the QL setting, generalized to NQL QL-bits.
+    Construct the second-order Trotter-Suzuki unitary for a transverse Ising-like model with multiple QL-bits.
 
-    Args
-    ----
-    n    : number of nodes per subgraph (local dim = 2n)
-    NQL  : number of QL-bits ("spins")
-    J    : interaction strength (ZZ term)
-    h    : transverse field strength (X term)
-    dt   : Trotter time step
+    Parameters:
+    n : int - Number of nodes per subgraph.
+    NQL : int - Number of QL-bits in the system.
+    J : float - Interaction strength for the ZZ interaction term.
+    h : float - Transverse field strength for the X term.
+    dt : float - Time-step used in the Trotter-Suzuki decomposition.
+    debug : bool - If True, prints intermediate matrix shape information.
 
-    Returns
-    -------
+    Returns:
     Ug : np.ndarray
-        Full Trotter step unitary on (2n)^NQL-dimensional space
+        The full Trotterized unitary matrix for the multi-QL-bit system, representing one time step of the evolution.
     """
 
-    d_site = 2 * n
+    site_dim = 2 * n
 
     # --- Trotter angles ---
-    Jtheta0 = 2 * J * (dt / 2.0)  # "even" bonds
-    Jtheta1 = 2 * J * dt          # "odd" bonds
+    Jtheta0 = 2 * J * (dt / 2.0)  # "even" bonds: interactions between QL-bits at positions (0,1), (2,3), ..., i.e., pairs where the first index is even
+    Jtheta1 = 2 * J * dt          # "odd" bonds: interactions between adjacent QL-bits at odd indices, e.g., (1,2), (3,4), etc.
     htheta  = 2 * h * (dt / 2.0)  # half-step transverse field
 
     # --- Single QL-bit gate (Rx) and its tensor power ---
-    Rx = transform1('Rx', n, theta=htheta, U=None)    # acts on one QL-bit
+    Rx = transform1('Rx', n, theta=htheta)    # acts on one QL-bit
     URx = kron_power(Rx, NQL)                         # Rx ⊗ Rx ⊗ ... NQL times
 
     # --- Build two-QL-bit Rzz building blocks ---
@@ -176,10 +215,10 @@ def transverseN(n, NQL, J, h, dt,debug):
             if half > 1:
                 Uzz1_core = kron_power(rzz1, half - 1)
             else:
-                Uzz1_core = np.eye(d_site**2, dtype=complex)
+                Uzz1_core = np.eye(site_dim**2, dtype=complex)
 
-            Uzz1 = np.kron(np.eye(d_site, dtype=complex),
-                           np.kron(Uzz1_core, np.eye(d_site, dtype=complex)))
+            Uzz1 = np.kron(np.eye(site_dim, dtype=complex),
+                           np.kron(Uzz1_core, np.eye(site_dim, dtype=complex)))
 
         else:
             # Odd NQL: your original pattern, just expressed via kron_power
@@ -187,23 +226,34 @@ def transverseN(n, NQL, J, h, dt,debug):
 
             # Uzz0: rzz0^(⊗ idx) ⊗ I
             Uzz0_core = kron_power(rzz0, idx)
-            Uzz0 = np.kron(Uzz0_core, np.eye(d_site, dtype=complex))
+            Uzz0 = np.kron(Uzz0_core, np.eye(site_dim, dtype=complex))
 
             # Uzz1: I ⊗ rzz1^(⊗ (idx-1))   (if idx > 1)
             if idx > 1:
                 Uzz1_core = kron_power(rzz1, idx - 1)
-                Uzz1 = np.kron(np.eye(d_site, dtype=complex), Uzz1_core)
+                Uzz1 = np.kron(np.eye(site_dim, dtype=complex), Uzz1_core)
             else:
                 # NQL = 3 special case: only a single rzz1 in the middle
-                Uzz1 = np.kron(np.eye(d_site, dtype=complex), rzz1)
+                Uzz1 = np.kron(np.eye(site_dim, dtype=complex), rzz1)
     if debug:
-        # Debug (optional)
-        print("Shapes:", URx.shape, Uzz0.shape, Uzz1.shape)
-
+        logging.basicConfig(level=logging.DEBUG)
+        logging.debug(f"Shapes: {URx.shape}, {Uzz0.shape}, {Uzz1.shape}")
+    # Second-order Trotter step: Rx-half, ZZ-even, ZZ-odd, ZZ-even, Rx-half
     Ug = URx @ Uzz0 @ Uzz1 @ Uzz0 @ URx
     return Ug
+    return Ug
 
-def propagate_state(cfg,psi):
+def propagate_state(cfg, psi):
+    """
+    Propagate an initial quantum state through time using the transverse model evolution operator.
+
+    Parameters:
+    cfg : object - Configuration object containing system and simulation parameters.
+    psi : np.ndarray - Initial state vector of the system.
+
+    Returns:
+    psit : np.ndarray - Time-evolved state vectors for all simulation time steps.
+    """
     print('Propagate_state')
     Ntot = (2 * cfg.n) ** cfg.NQL
     Ug = transverseN(cfg.n, cfg.NQL, cfg.J, cfg.h, cfg.deltat,debug=False)
@@ -219,28 +269,21 @@ def propagate_state(cfg,psi):
     return psit
 
 def bell_state(cfg, psi0, kind="phi_plus"):
+
     """
-    Generate a chosen Bell basis state starting from |00>.
+    Generate a Bell basis state from the initial |00⟩ state.
 
-    Parameters
-    ----------
-    cfg : object
-        System configuration.
+    Parameters:
+    cfg : object - Configuration object containing system parameters.
+    psi0 : np.ndarray - Initial state vector, expected to represent the |00...0⟩ state.
+    kind : str - Type of Bell state to generate ("phi_plus", "phi_minus", "psi_plus", or "psi_minus").
+        'phi_plus'  -> |Φ⁺⟩
+        'phi_minus' -> |Φ⁻⟩
+        'psi_plus'  -> |Ψ⁺⟩
+        'psi_minus' -> |Ψ⁻⟩
 
-    psi0 : ndarray
-        Must be |00...0> state.
-
-    kind : str
-        One of:
-            'phi_plus'  -> |Φ⁺⟩
-            'phi_minus' -> |Φ⁻⟩
-            'psi_plus'  -> |Ψ⁺⟩
-            'psi_minus' -> |Ψ⁻⟩
-
-    Returns
-    -------
-    ndarray
-        Bell state vector.
+    Returns:
+    state : np.ndarray - Generated Bell state vector.
     """
 
     UH = transform1("H", cfg.n)

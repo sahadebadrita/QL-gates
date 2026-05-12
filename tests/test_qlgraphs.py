@@ -22,7 +22,7 @@ def test_cartpdt_shape(small_config):
     A = np.eye(2*small_config.n)
     B = np.eye(2*small_config.n)
 
-    C = cart_qldit(small_config.n,small_config.d,adj_mat1=A, adj_mat2=B)
+    C = cart_qldit(adj_mat1=A, adj_mat2=B)
 
     assert C.shape == ((2*small_config.n)**small_config.NQL, (2*small_config.n)**small_config.NQL)
     assert C.ndim == 2
@@ -52,7 +52,7 @@ def test_cart_qldit_eigen_convolution(small_config):
     #B = qldit(n=2, k=2, d=2, l=1, coupling=0.3,
     #          periodic=True, full=False)
 
-    C = cart_qldit(small_config.n,small_config.d,adj_mat1=A, adj_mat2=B)
+    C = cart_qldit(adj_mat1=A, adj_mat2=B)
 
     lamA = np.linalg.eigvals(A)
     lamB = np.linalg.eigvals(B)
