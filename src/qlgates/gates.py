@@ -1,24 +1,18 @@
-import igraph as ig
 import numpy as np
-import matplotlib.pyplot as plt
-import os
-import sys
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
-from scipy.linalg import logm as logm
-from scipy.linalg import expm as expm
-from scipy.integrate import solve_ivp
-from scipy.stats import unitary_group
 
 #Scripts that relate to gate transformations -- both single and two qubit
 
 def get_Vg(gate, theta=None, U=None):
     """
-    Gets the single qubit gates
+    Generate the single qubit gate matrix in computational basis.
+
     Parameters:
-    gate: string with gate symbol
-    theta: arg for rotation gate
-    U: exact unitary for check
+    gate : str - Name of the quantum gate to be applied.
+    theta : optional - Angle parameter for parameterized gates (if applicable).
+    U : optional - External unitary matrix for generalized transformations.
+
+    Returns:
+    Vg : np.ndarray - Conventional single qubit gate matrix.
     """
     Vg = np.zeros((2,2), dtype=complex)
 
@@ -87,78 +81,22 @@ def get_Vg(gate, theta=None, U=None):
         Vg[1,1] = np.cos(theta/2)
 
     else:
-        print("wrong gate!")
-        # sys.exit()
+        raise ValueError("Wrong gate name. Supported gates: I, H, x, y, z, Rz, Ry, Rx, custom U")
 
     return Vg
 
-
-#single qubit gate implementation
-def transform_R(R, gate, n, theta=None, U=None):
-
-	VH = get_Vg("H")
-	Vg = get_Vg(gate,theta,U)
-	Ucb = np.kron(VH, np.identity(n))
-	Ug =  (np.linalg.inv(Ucb) @
-	np.kron(Vg,np.identity(n)) @ Ucb)
-
-	Rg =  Ug @ R @ Ug.T.conj()
-
-	return Rg
-
-# two qubit gate implementation
-def transform_R12(R, gate0, gate1, n, theta=None, U=None):
-	"""""
-	Arguments:
-	R: Adjacency matrix for the Cartesian Product of two graphs
-	gate0: Conditional gate on target when condiion is 0
-	gate1: Conditional gate on target when condiion is 1
-	n: Number of nodes in each subgraph
-
-	"""""
-	#create transformation matrix for N_QL bits
-	VH = get_Vg("H")	#transformation matrix
-	Ucb1 = np.kron(VH, np.identity(n))
-	Ucb2 = np.kron(Ucb1,Ucb1)
-
-	Pp = np.zeros((2*n,2*n))		##create the projector of 0
-	Id = np.identity(n)
-
-	Pp[0:n,0:n] = Id
-	Pp[n:2*n,0:n] = Id
-	Pp[0:n,n:2*n] = Id
-	Pp[n:2*n,n:2*n] = Id
-	Pp *= 0.5
-
-	Pm = Pp.copy()
-
-	Pm[n:2*n,0:n] *= -1		##create the projector of 1
-	Pm[0:n,n:2*n] *= -1
-
-	V0 = get_Vg(gate0,theta,U)	#single qubit gate to be implemented
-	V1 = get_Vg(gate1,theta,U)	#single qubit gate to be implemented
-
-	U0 = np.kron(V0,Id)
-	U1 = np.kron(V1,Id)
-
-	UCN = np.linalg.inv(Ucb2) @ (np.kron(Pp,U0) + np.kron(Pm,U1)) @ Ucb2
-	Rg =  UCN @ R @ UCN.T.conj()
-	return Rg
-
 def transform1(gate, n, theta=None, U=None):
     """
-    Single QL-bit gate matrix.
+    Generate the single QL-bit gate matrix in the transformed basis.
 
-    Parameters
-    ----------
-    gate : str
-        Gate name.
-    n : int
-        Number of nodes in QL-bit subgraph.
-    theta : float, optional
-        Argument for arbitrary-angle gates.
-    U : np.ndarray, optional
-        Optional unitary.
+    Parameters:
+    gate : str - Name of the quantum gate to be applied.
+    n : int - Number of nodes in each QL-bit subgraph.
+    theta : optional - Angle parameter for parameterized gates (if applicable).
+    U : optional - External unitary matrix for generalized transformations.
+
+    Returns:
+    Ug : np.ndarray - Transformed single QL-bit gate matrix.
     """
 
     VH = get_Vg("H")
@@ -176,12 +114,17 @@ def transform1(gate, n, theta=None, U=None):
 
 def transform2(gate0, gate1, n, theta=None, U=None):
     """
-    Arguments:
-        gate0 : Conditional gate on target when condition is 0
-        gate1 : Conditional gate on target when condition is 1
-        n     : Number of nodes in each subgraph
-        theta : Optional parameter
-        U     : Optional unitary
+    Generate a controlled transformation matrix for QL-bits.
+
+    Parameters:
+    gate0 : str - Conditional gate applied to the target when the control state is 0.
+    gate1 : str - Conditional gate applied to the target when the control state is 1.
+    n : int - Number of nodes in each QL-bit subgraph.
+    theta : optional - Angle parameter for parameterized gates (if applicable).
+    U : optional - External unitary matrix for generalized transformations.
+
+    Returns:
+    UCN : np.ndarray - Controlled transformation matrix for the QL-bit system.
     """
 
     # create transformation matrix for N_QL bits
@@ -204,13 +147,6 @@ def transform2(gate0, gate1, n, theta=None, U=None):
     Pm[n:2*n, 0:n] *= -1
     Pm[0:n, n:2*n] *= -1
 
-    V0 = get_Vg(gate0, theta, U)
-    V1 = get_Vg(gate1, theta, U)
-
-    #U0 = np.kron(V0, Id)
-    #U1 = np.kron(V1, Id)
-
-    #UCN = np.linalg.inv(Ucb2) @ (np.kron(Pp, U0) + np.kron(Pm, U1)) @ Ucb2
     U0 = transform1(gate0, n, theta=None, U=None)
     U1 = transform1(gate1, n, theta=None, U=None)
     UCN = (np.kron(Pp, U0) + np.kron(Pm, U1))
@@ -219,11 +155,14 @@ def transform2(gate0, gate1, n, theta=None, U=None):
 
 def cnot(n, theta=None, U=None):
     """
-    Standalone script for CNOT gate matrix for QL-bits
+    Generate the CNOT gate matrix for QL-bits.
+
     Parameters:
-    n: number of nodes in QL-bit subgraph
-    theta: arg for arbitray angle, set to None
-    U : Matrix to compare to, set to None here
+    n : int - Number of nodes in each QL-bit subgraph.
+    theta : optional - Angle parameter (not used in this implementation, kept for compatibility).
+    U : optional - External matrix input for comparison or generalization (not used here).
+    Returns:
+    cnot : np.ndarray - CNOT gate matrix for the QL-bit system.
     """
     UI = transform1('I', n, theta=None,U = None)
     UX = transform1('x', n, theta=None,U = None)
@@ -236,51 +175,57 @@ def cnot(n, theta=None, U=None):
 
 def getRzzgate(n,NQL,theta1):
     """
-    Generates Rzz gate matrix for QL-bits
+    Generate the Rzz rotation gate matrix for QL-bits.
+
     Parameters:
-    n: number of nodes in QL-bit subgraph
-    NQL: number of QL-bits
-    theta1: arg for arbitray angle
+    n : int - Number of nodes in each QL-bit subgraph.
+    NQL : int - Number of QL-bits in the system.
+    theta1 : float - Rotation angle parameter for the Rzz gate.
+
+    Returns:
+    URzz : np.ndarray - Rzz gate matrix for the QL-bit system.
     """
-    #Get UCN
     UCN = transform2('I', 'x', n, theta=None, U=None)
-    #get Rz
-    Rz = transform1('Rz', n, theta=theta1,U = None)
-    #get UI
-    UI = transform1('I', n, theta=None,U = None)
+    Rz = transform1('Rz', n, theta=theta1,U=None)
+    UI = transform1('I', n, theta=None,U=None)
     URz = np.kron(UI,Rz)
-    #URz = np.kron(np.identity((2*n)**(NQL-1)),Rz)
     URzz = UCN @ URz @ UCN
     return URzz
 
 def getRyygate(n,NQL,theta1):
     """
-    Generates Ryy gate matrix for QL-bits
+    Generate the Ryy rotation gate matrix for QL-bits.
+
     Parameters:
-    n: number of nodes in QL-bit subgraph
-    NQL: number of QL-bits
-    theta1: arg for arbitray angle
+    n : int - Number of nodes in each QL-bit subgraph.
+    NQL : int - Number of QL-bits in the system.
+    theta1 : float - Rotation angle parameter for the Ryy gate.
+
+    Returns:
+    URyy : np.ndarray - Ryy gate matrix for the QL-bit system.
     """
     URzz = getRzzgate(n,NQL,theta1)
-    #Get UCN
-    Rx_p = transform1('Rx', n, theta=1.57,U = None)
-    Rx_m = transform1('Rx', n, theta=-1.57,U = None)
+    Rx_p = transform1('Rx', n, theta=1.57,U=None)
+    Rx_m = transform1('Rx', n, theta=-1.57,U=None)
     URx_p = np.kron(Rx_p,Rx_p)
     URx_m = np.kron(Rx_m,Rx_m)
     URyy = URx_p @ URzz @ URx_m
-    return URzz
+    return URyy
 
-def getRxxgate(n,NQL,theta1):
+def getRxxgate(n, NQL, theta1):
     """
-    Generates Rxx gate matrix for QL-bits
+    Generate the Rxx rotation gate matrix for QL-bits.
+
     Parameters:
-    n: number of nodes in QL-bit subgraph
-    NQL: number of QL-bits
-    theta1: arg for arbitray angle
+    n : int - Number of nodes in each QL-bit subgraph.
+    NQL : int - Number of QL-bits in the system.
+    theta1 : float - Rotation angle parameter for the Rxx gate.
+
+    Returns:
+    URxx : np.ndarray - Rxx gate matrix for the QL-bit system.
     """
     URzz = getRzzgate(n,NQL,theta1)
-    #get the Hadamard gate
     VH = transform1('H', n, theta=None,U = None)
     UH = np.kron(VH,VH)
     URxx = UH @ URzz @UH
-    return URzz
+    return URxx

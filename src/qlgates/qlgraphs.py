@@ -21,6 +21,8 @@ def qldit(n, k, l, d, coupling, periodic, full):
     total_nodes = n * (d + 1)
     system_matrix = np.zeros((total_nodes, total_nodes), dtype=np.int8)  # Efficient memory allocation
 
+    coupling_matrices = []  # Ensure coupling_matrices is always defined
+
     # Generate adjacency matrices for k-regular graphs (diagonal blocks)
     adjacency_matrices = [np.array(ig.Graph.K_Regular(n, k).get_adjacency().data, dtype=np.int8) for _ in range(d+1)]
     # Assign adjacency matrices to diagonal blocks
@@ -59,15 +61,16 @@ def qldit(n, k, l, d, coupling, periodic, full):
     return system_matrix
 
 
-def cart_qldit(n,d,adj_mat1,adj_mat2):
+def cart_qldit(adj_mat1, adj_mat2):
     """
-    Creates the cartesian product of two QL-dits
+    Creates the cartesian product of two QL-dits.
+
     Parameters:
-    n : number of vertices in a subgraph
-    d : dimension of QL-dit
     adj_mat1 : adjacency matrix for QL-dit 1
     adj_mat2 : adjacency matrix for QL-dit 2
+
+    Returns:
+    adj_matrix_cart_kron : np.ndarray - The adjacency matrix of the cartesian product of the two QL-dits.
     """
-    #adj_matrix_cart_kron = np.kron(np.eye(int((d+1)*n)),adj_mat2) + np.kron(adj_mat1,np.eye(int((d+1)*n)))
     adj_matrix_cart_kron = np.kron(np.eye(adj_mat1.shape[0]),adj_mat2) + np.kron(adj_mat1,np.eye(adj_mat2.shape[0]))
     return adj_matrix_cart_kron
