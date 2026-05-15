@@ -2,6 +2,7 @@ import numpy as np
 import logging
 import json
 from qlgates.gates import transform1, transform2, getRzzgate, getRyygate, getRxxgate
+from qlgates.config import Config
 
 def jbparams(N, filename):
     """
@@ -241,9 +242,8 @@ def transverseN(n, NQL, J, h, dt, debug):
     # Second-order Trotter step: Rx-half, ZZ-even, ZZ-odd, ZZ-even, Rx-half
     Ug = URx @ Uzz0 @ Uzz1 @ Uzz0 @ URx
     return Ug
-    return Ug
 
-def propagate_state(cfg, psi):
+def propagate_state(cfg: Config, psi: np.ndarray) -> np.ndarray:
     """
     Propagate an initial quantum state through time using the transverse model evolution operator.
 
@@ -254,10 +254,9 @@ def propagate_state(cfg, psi):
     Returns:
     psit : np.ndarray - Time-evolved state vectors for all simulation time steps.
     """
-    print('Propagate_state')
+    logging.info('Propagate_state')
     Ntot = (2 * cfg.n) ** cfg.NQL
     Ug = transverseN(cfg.n, cfg.NQL, cfg.J, cfg.h, cfg.deltat,debug=False)
-    #Ug = xymodel2(cfg.n,cfg.NQL,cfg.J,cfg.deltat)
     psit = np.empty((Ntot,cfg.timesteps),dtype=complex)
     psit[:,0] = psi
     print(cfg.timesteps)
