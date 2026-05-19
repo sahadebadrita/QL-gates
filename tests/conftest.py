@@ -12,11 +12,16 @@ def small_config():
         periodic=False,
         full=False,
         NQL=2,
-        CartPdt=True
+        CartPdt=True,
+        model="transverse",
+        timesteps=10,
+        deltat=0.01,
+        J=-1.0,
+        h=2.0,
     )
 
 class MockConfig:
-    n = 2
+    n = 8
     NQL = 2
 
 

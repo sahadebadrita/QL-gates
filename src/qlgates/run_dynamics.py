@@ -106,10 +106,9 @@ def propagate_state(cfg: Config, psi: np.ndarray, build_unitary: callable) -> np
     Ug = build_unitary(cfg)
     psit = np.empty((Ntot,cfg.timesteps),dtype=complex)
     psit[:,0] = psi
-    print(cfg.timesteps)
+    logging.info(f"Propagating {cfg.timesteps} time steps", flush=True)
     for step in range(1,cfg.timesteps,1):
-        print('yyyy')
-        print("time", step*cfg.deltat,flush=True)
+        logging.info(f"Time step {step}/{cfg.timesteps}", flush=True)
         psit[:,step] = Ug @ psit[:,step-1]
 
     return psit
