@@ -1,4 +1,4 @@
-from qlgates.qldyn import transverseN, xymodel_two_qubit_trotter
+from qlgates.hamiltonians import transverseN, xymodel_two_qubit_trotter
 from qlgates.gates import transform1, transform2
 from qlgates.config import Config
 import numpy as np
@@ -91,7 +91,7 @@ def build_initstate(cfg) -> np.ndarray:
 
 def propagate_state(cfg: Config, psi: np.ndarray, build_unitary: callable) -> np.ndarray:
     """
-    Propagate an initial quantum state through time using the transverse model evolution operator.
+    Propagate an initial quantum state through time using the hamiltonian model evolution operator.
 
     Parameters:
     cfg : object - Configuration object containing system and simulation parameters.
