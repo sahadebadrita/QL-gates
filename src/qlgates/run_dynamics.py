@@ -4,16 +4,15 @@ from qlgates.config import Config
 import numpy as np
 import logging
 
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 """
 Build the unitaries for the transverse field Ising model and the XY model. 
 The code is structured to allow easy extension to other models by adding new unitary builders to the registry.
 """
-# trotter/transverse.py
+
 def build_transverse_unitary(cfg) -> np.ndarray:
     return transverseN(cfg.n, cfg.NQL, cfg.J, cfg.h, cfg.deltat, debug=False)
 
-# trotter/xy.py
 def build_xy_unitary(cfg) -> np.ndarray:
     return xymodel_two_qubit_trotter(cfg.n, cfg.NQL, cfg.J, cfg.deltat)
 

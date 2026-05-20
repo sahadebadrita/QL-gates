@@ -85,6 +85,19 @@ def get_Vg(gate, theta=None, U=None):
 
     return Vg
 
+def rzz_matrix(theta):
+    """
+    Standard 4x4 Rzz gate: exp(-i theta/2 * Z⊗Z)
+    Diagonal in the computational basis:
+      |00> -> exp(-i theta/2)
+      |01> -> exp(+i theta/2)
+      |10> -> exp(+i theta/2)
+      |11> -> exp(-i theta/2)
+    """
+    p = np.exp(-1j * theta / 2)
+    m = np.exp(+1j * theta / 2)
+    return np.diag([p, m, m, p])
+
 def transform1(gate, n, theta=None, U=None):
     """
     Generate the single QL-bit gate matrix in the transformed basis.

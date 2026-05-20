@@ -1,9 +1,13 @@
+"""
+Unit tests for hamiltonians.py and qldyn.py functions.
+"""
+
 import numpy as np
 import os, sys
 import pytest
 
 from qlgates.hamiltonians import transverseN
-from qlgates.run_dynamics import bell_state, propagate_state
+from qlgates.run_dynamics import bell_state, build_unitary, propagate_state, build_transverse_unitary
 
 def test_transverseN(small_config):
     U = transverseN(
@@ -41,10 +45,12 @@ def test_transverseN_is_unitary(small_config):
 
 def test_propagate_preserves_norm(small_config, psi0):
     """Norm must be conserved at every time step."""
-    #cfg = SystemConfig(n=1, NQL=2, J=0.5, h=0.3, deltat=0.01, timesteps=50)
-    #Ntot = (2 * cfg.n) ** cfg.NQL
-    #psi0 = np.zeros(Ntot, dtype=complex)
-    #psi0[0] = 1.0
-    psit = propagate_state(small_config, psi0, small_config)
+    psit = propagate_state(small_config, psi0, build_unitary)
+    norms = np.linalg.norm(psit, axis=0)
+    assert np.allclose(norms, 1.0, atol=1e-10)
+
+def test_norm_preserved(small_config, psi0):
+    """Norm must be 1 at every time step (unitary evolution)."""
+    psit = propagate_state(small_config, psi0, build_unitary)
     norms = np.linalg.norm(psit, axis=0)
     assert np.allclose(norms, 1.0, atol=1e-10)

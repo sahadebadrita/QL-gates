@@ -16,26 +16,8 @@ import logging
 import json
 from qlgates.gates import transform1, transform2, getRzzgate, getRyygate, getRxxgate
 from qlgates.config import Config
-
-logging.basicConfig(level=logging.INFO)
-
-def kron_power(U, reps):
-    """
-    Compute the repeated Kronecker product of a square matrix with itself.
-
-    Parameters:
-    U : np.ndarray - Input square matrix (shape (d, d)) to be tensor-product repeated.
-    reps : int - Number of Kronecker product repetitions.
-
-    Returns:
-    Ug : np.ndarray - Matrix of shape (d**reps, d**reps) corresponding to U ⊗ U ⊗ ... ⊗ U (reps times).
-    """
-    if reps < 1:
-        raise ValueError("reps must be >= 1")
-    result = U
-    for _ in range(reps - 1):
-        result = np.kron(result, U)
-    return result
+from qlgates.helpers import kron_power
+#logging.basicConfig(level=logging.INFO)
 
 def jbparams(N, filename):
     """
@@ -184,7 +166,7 @@ def xymodel_two_qubit_trotter(n, NQL, J, dt):
 
 def transverseN(n, NQL, J, h, dt, debug):
     """
-    Construct the second-order Trotter-Suzuki unitary for a transverse Ising-like model with multiple QL-bits.
+    Construct the second-order Trotter-Suzuki unitary for a (NQL spins) transverse Ising-like model with multiple QL-bits.
 
     Parameters:
     n : int - Number of nodes per subgraph.
