@@ -1,3 +1,6 @@
+"""
+Unit tests for gates.py functions.
+"""
 import numpy as np
 import os, sys
 import pytest

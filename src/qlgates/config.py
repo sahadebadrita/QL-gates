@@ -24,6 +24,10 @@ class Config:
         self.l = int((self.k - 2 * np.sqrt(self.k - 1)) / 2)
         self.lp = self.l - 1
 
+    model : str = "transverse" # "transverse" or "xy"
+    timesteps : int = 1
+    deltat : float = 0.1
+
     # --- Hamiltonian ---
     J: float = -1.0
     h: float = 2.0

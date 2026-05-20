@@ -1,7 +1,23 @@
+"""
+This module contains functions for simulating quantum dynamics of spin systems using Trotter-Suzuki 
+decompositions. It includes utilities for constructing Hamiltonians, generating Bell states, 
+and propagating quantum states through time using specified unitary evolution operators.
+The main functions are:
+- `kron_power`: Computes the repeated Kronecker product of a matrix.
+- `jbparams`: Generates random coupling and field parameters for a spin system and saves them as JSON files.
+- `ising_hamiltonian`: Constructs the full Hamiltonian matrix for an Ising model with specified interactions and fields.
+- `xymodel_two_qubit_trotter`: Builds the Trotterized unitary for a two-spin XY model.
+- `transverseN`: Constructs the Trotterized unitary for a transverse Ising-like model with multiple QL-bits.
+"""
+
+
 import numpy as np
 import logging
 import json
 from qlgates.gates import transform1, transform2, getRzzgate, getRyygate, getRxxgate
+from qlgates.config import Config
+from qlgates.helpers import kron_power
+#logging.basicConfig(level=logging.INFO)
 
 def jbparams(N, filename):
     """
@@ -125,7 +141,7 @@ def xymodel_two_qubit_trotter(n, NQL, J, dt):
     Ug = rxx @ ryy @ rxx
     return Ug
 
-def transverse_two_qubit_trotter(n, NQL, J, h, dt):
+
     """
     Construct the second-order Trotter-Suzuki unitary for a two-spin transverse Ising-like Hamiltonian.
 
@@ -148,28 +164,9 @@ def transverse_two_qubit_trotter(n, NQL, J, h, dt):
     Ug = URx @ rzz @ URx
     return Ug
 
-def kron_power(U, reps):
-    """
-    Compute the repeated Kronecker product of a square matrix with itself.
-
-    Parameters:
-    U : np.ndarray - Input square matrix (shape (d, d)) to be tensor-product repeated.
-    reps : int - Number of Kronecker product repetitions.
-
-    Returns:
-    Ug : np.ndarray - Matrix of shape (d**reps, d**reps) corresponding to U ⊗ U ⊗ ... ⊗ U (reps times).
-    """
-    if reps < 1:
-        raise ValueError("reps must be >= 1")
-    result = U
-    for _ in range(reps - 1):
-        result = np.kron(result, U)
-    return result
-
-
 def transverseN(n, NQL, J, h, dt, debug):
     """
-    Construct the second-order Trotter-Suzuki unitary for a transverse Ising-like model with multiple QL-bits.
+    Construct the second-order Trotter-Suzuki unitary for a (NQL spins) transverse Ising-like model with multiple QL-bits.
 
     Parameters:
     n : int - Number of nodes per subgraph.
@@ -241,70 +238,3 @@ def transverseN(n, NQL, J, h, dt, debug):
     # Second-order Trotter step: Rx-half, ZZ-even, ZZ-odd, ZZ-even, Rx-half
     Ug = URx @ Uzz0 @ Uzz1 @ Uzz0 @ URx
     return Ug
-    return Ug
-
-def propagate_state(cfg, psi):
-    """
-    Propagate an initial quantum state through time using the transverse model evolution operator.
-
-    Parameters:
-    cfg : object - Configuration object containing system and simulation parameters.
-    psi : np.ndarray - Initial state vector of the system.
-
-    Returns:
-    psit : np.ndarray - Time-evolved state vectors for all simulation time steps.
-    """
-    print('Propagate_state')
-    Ntot = (2 * cfg.n) ** cfg.NQL
-    Ug = transverseN(cfg.n, cfg.NQL, cfg.J, cfg.h, cfg.deltat,debug=False)
-    #Ug = xymodel2(cfg.n,cfg.NQL,cfg.J,cfg.deltat)
-    psit = np.empty((Ntot,cfg.timesteps),dtype=complex)
-    psit[:,0] = psi
-    print(cfg.timesteps)
-    for step in range(1,cfg.timesteps,1):
-        print('yyyy')
-        print("time", step*cfg.deltat,flush=True)
-        psit[:,step] = Ug @ psit[:,step-1]
-
-    return psit
-
-def bell_state(cfg, psi0, kind="phi_plus"):
-
-    """
-    Generate a Bell basis state from the initial |00⟩ state.
-
-    Parameters:
-    cfg : object - Configuration object containing system parameters.
-    psi0 : np.ndarray - Initial state vector, expected to represent the |00...0⟩ state.
-    kind : str - Type of Bell state to generate ("phi_plus", "phi_minus", "psi_plus", or "psi_minus").
-        'phi_plus'  -> |Φ⁺⟩
-        'phi_minus' -> |Φ⁻⟩
-        'psi_plus'  -> |Ψ⁺⟩
-        'psi_minus' -> |Ψ⁻⟩
-
-    Returns:
-    state : np.ndarray - Generated Bell state vector.
-    """
-
-    UH = transform1("H", cfg.n)
-    UI = transform1("I", cfg.n)
-    CNOT = transform2("I", "x", cfg.n)
-
-    # Bell entangling circuit
-    Ubell = CNOT @ np.kron(UH, UI)
-
-    # Apply circuit to |00>
-    phi_plus = Ubell @ psi0
-
-    # Generate other Bell states via local ops on qubit 0
-    ops = {
-        "phi_plus": np.kron(transform1("I", cfg.n), UI),
-        "phi_minus": np.kron(transform1("z", cfg.n), UI),
-        "psi_plus": np.kron(transform1("x", cfg.n), UI),
-        "psi_minus": np.kron(transform1("z", cfg.n) @ transform1("x", cfg.n), UI),
-    }
-
-    if kind not in ops:
-        raise ValueError(f"Unknown Bell state: {kind}")
-
-    return ops[kind] @ phi_plus
