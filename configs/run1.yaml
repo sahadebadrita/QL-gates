@@ -1,0 +1,21 @@
+# QL graph
+n: 32
+k: 10
+d: 2
+coupling: true
+periodic: false
+full: false
+NQL: 2
+CartPdt: false
+
+# Model
+model: "transverse"
+timesteps: 10
+deltat: 0.05
+
+# Hamiltonian
+J: -1.0
+h: 2.5
+
+# Meta
+debug: false

@@ -24,6 +24,11 @@ class Config:
         self.l = int((self.k - 2 * np.sqrt(self.k - 1)) / 2)
         self.lp = self.l - 1
 
+        # Validation
+        assert self.k < self.n, f"k={self.k} must be less than n={self.n}"
+        assert self.deltat > 0, "deltat must be positive"
+        assert self.model in ("transverse", "xy"), f"Unknown model: {self.model}"
+
     model : str = "transverse" # "transverse" or "xy"
     timesteps : int = 1
     deltat : float = 0.1
