@@ -1,6 +1,6 @@
 # QL graph
-n: 16
-k: 9
+n: 32
+k: 10
 d: 1
 coupling: true
 periodic: false
