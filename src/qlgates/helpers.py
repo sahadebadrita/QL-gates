@@ -3,7 +3,6 @@ Helper functions for quantum gate construction and manipulation.
 """
 import numpy as np
 from qlgates.gates import transform1
-from scripts.checkhadamard import NQL
 
 def kron_power(U, reps):
     """
