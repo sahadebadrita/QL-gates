@@ -1,6 +1,6 @@
 # QL graph
-n: 32
-k: 10
+n: 16
+k: 12
 d: 1
 coupling: true
 periodic: false
@@ -10,12 +10,12 @@ CartPdt: true
 
 # Model
 model: "transverse"
-timesteps: 5
-deltat: 0.05
+timesteps: 2
+deltat: 0.1
 
 # Hamiltonian
 J: -1.0
-h: 2.5
+h: 0.4
 
 # Meta
 debug: false

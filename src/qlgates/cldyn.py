@@ -140,6 +140,94 @@ def propagate_state_classical(cfg:Config, psi: np.ndarray) -> np.ndarray:
 
     return psit
 
+def bell_state_qubit(cfg: Config, psi0, kind="phi_plus"):
+
+    """
+    Generate a Bell basis state from the initial |00⟩ state.
+
+    Parameters:
+    cfg : object - Configuration object containing system parameters.
+    psi0 : np.ndarray - Initial state vector, expected to represent the |00...0⟩ state.
+    kind : str - Type of Bell state to generate ("phi_plus", "phi_minus", "psi_plus", or "psi_minus").
+        'phi_plus'  -> |Φ⁺⟩
+        'phi_minus' -> |Φ⁻⟩
+        'psi_plus'  -> |Ψ⁺⟩
+        'psi_minus' -> |Ψ⁻⟩
+
+    Returns:
+    state : np.ndarray - Generated Bell state vector.
+    """
+
+    H = get_Vg("H", theta=None, U=None)
+    I = get_Vg("I", theta=None, U=None)
+    CNOT = np.array([
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 0, 1],
+    [0, 0, 1, 0]
+])
+
+    # Bell entangling circuit
+    Ubell = CNOT @ np.kron(H, I)
+    
+    # Generate other Bell states via local ops on qubit 0
+    ops = {
+        "phi_plus": np.kron(I, I),
+        "phi_minus": np.kron(I,get_Vg("z", theta=None, U=None)),
+        "psi_plus": np.kron(get_Vg("x", theta=None, U=None), I),
+        "psi_minus": np.kron(get_Vg("x", theta=None, U=None) , get_Vg("z", theta=None, U=None))
+    }
+
+    if kind not in ops:
+        raise ValueError(f"Unknown Bell state: {kind}")
+    Ug = ops[kind] @ Ubell
+    psi_bell = Ug @ psi0
+    return psi_bell
+
+def bell_state_qubitrl(cfg: Config, psi0, kind="phi_plus"):
+
+    """
+    Generate a Bell basis state from the initial |00⟩ state.
+
+    Parameters:
+    cfg : object - Configuration object containing system parameters.
+    psi0 : np.ndarray - Initial state vector, expected to represent the |00...0⟩ state.
+    kind : str - Type of Bell state to generate ("phi_plus", "phi_minus", "psi_plus", or "psi_minus").
+        'phi_plus'  -> |Φ⁺⟩
+        'phi_minus' -> |Φ⁻⟩
+        'psi_plus'  -> |Ψ⁺⟩
+        'psi_minus' -> |Ψ⁻⟩
+
+    Returns:
+    state : np.ndarray - Generated Bell state vector.
+    """
+
+    H = get_Vg("H", theta=None, U=None)
+    I = get_Vg("I", theta=None, U=None)
+    CNOT = np.array([
+    [1, 0, 0, 0],
+    [0, 0, 0, 1],
+    [0, 0, 1, 0],
+    [0, 1, 0, 0]
+])
+
+    # Bell entangling circuit
+    Ubell = CNOT @ np.kron(I, H)
+    
+    # Generate other Bell states via local ops on qubit 0
+    ops = {
+        "phi_plus": np.kron(I, I),
+        "phi_minus": np.kron(get_Vg("z", theta=None, U=None),I),
+        "psi_plus": np.kron(I,get_Vg("x", theta=None, U=None)),
+        "psi_minus": np.kron(get_Vg("z", theta=None, U=None), get_Vg("x", theta=None, U=None))
+    }
+
+    if kind not in ops:
+        raise ValueError(f"Unknown Bell state: {kind}")
+    Ug = ops[kind] @ Ubell
+    psi_bell = Ug @ psi0
+    return psi_bell    
+
 sx = np.array([[0, 1],
                [1, 0]], dtype=complex)
 
