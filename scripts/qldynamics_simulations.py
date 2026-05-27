@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import igraph as ig
 import networkx as nx
+from dataclasses import asdict
 from qlgates.config import Config
 from qlgates.run_dynamics import propagate_state, build_unitary
 from qlgates.qlgraphs import qldit, cart_qldit
@@ -25,21 +26,33 @@ def main():
     # Create Config instance with merged parameters
     cfg = Config(**overrides)
 
+    print("=" * 40)
+    print("Simulation parameters")
+    print("=" * 40)
+
+    for key, value in asdict(cfg).items():
+        print(f"  {key}: {value}")
+    print("=" * 40)
+
     # Run your simulation
-    #Create QL-resources -- QL-bits, Cartesian Products
     qlbit_1 = qldit(cfg.n, cfg.k, cfg.l, cfg.d, cfg.coupling, cfg.periodic, cfg.full)
-    qlbit_2 = qldit(cfg.n, cfg.k, cfg.lp, cfg.d, cfg.coupling, cfg.periodic, cfg.full)
-    qlbit1_qlbit2 = cart_qldit(qlbit_1,qlbit_2)
-    
-    #Encode initial state 
-    #e,v = np.linalg.eigh(qlbit1_qlbit2)
-    psi0 = computational_basis_state(cfg.NQL, 0)
-    
-    #Propagate
+    e_qlbit1, v_qlbit1 = np.linalg.eigh(qlbit_1)
+
+    #Initial state
+    psi0 = v_qlbit1[:,-1]  # ground state of the first QL-bit
+    for i in range(cfg.NQL-1):
+        psi0 = np.kron(psi0,v_qlbit1[:,-1])  # ground state of the product system
+    psi0 = psi0 / np.linalg.norm(psi0)  # normalize the state vector
+    print('Initial State created',flush=True)
+
+    #Dynamics
     psit = propagate_state(cfg,psi0,build_unitary)
+    print(psit.shape)
+    #np.savez(f"./della_slurm_runs/h{cfg.h}_J{cfg.J}_ql_N{cfg.NQL}.npz",result)
     
     #calculate expectation values
-    expectation = expectation(psit, qlbit1_qlbit2)
+    #expectation = expectation(psit, qlbit1_qlbit2)
+    
     #plot figures
     
     
