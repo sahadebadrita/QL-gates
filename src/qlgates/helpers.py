@@ -34,7 +34,7 @@ def kron_list(mats):
     """Kronecker product of a list of sparse matrices."""
     K = mats[0]
     for M in mats[1:]:
-        K = np.kron(K, M, format="csr")
+        K = np.kron(K, M)
     return K
 
 def build_local_operators(UO, UI, N):

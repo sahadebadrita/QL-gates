@@ -7,8 +7,6 @@ from dataclasses import asdict
 from qlgates.config import Config
 from qlgates.run_dynamics import propagate_state, build_unitary
 from qlgates.qlgraphs import qldit, cart_qldit
-from core.graph_generation import generate_quantum_like_bit
-from core.contraction import minimal_quotient
 
 def main():
     parser = argparse.ArgumentParser()
