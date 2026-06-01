@@ -7,6 +7,7 @@ from dataclasses import asdict
 from qlgates.config import Config
 from qlgates.run_dynamics import propagate_state, build_unitary
 from qlgates.qlgraphs import qldit, cart_qldit
+from qlgates.helpers import build_observable, expectation
 
 def main():
     parser = argparse.ArgumentParser()
@@ -36,10 +37,13 @@ def main():
     psit = np.load(f"./della_slurm_runs/h{cfg.h}_J{cfg.J}_ql_N{cfg.NQL}.npz")['arr_0']
     print(psit.shape)
 
-    #calculate expectation values
-    #expectation = expectation(psit, qlbit1_qlbit2)
-    
-    #plot figures
-    
+    #calculate expectation values for local Z observable on the first site
+    mz0 = build_observable(cfg,'z',0)
+    expectation = expectation(psit, mz0)
+
+    #save expectation values
+
+    np.savez(f"./della_slurm_runs/h{cfg.h}_J{cfg.J}_ql_N{cfg.NQL}_expectation.npz",expectation)
+
 if __name__ == "__main__":
     main()
