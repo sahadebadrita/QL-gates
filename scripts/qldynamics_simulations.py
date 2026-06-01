@@ -46,8 +46,8 @@ def main():
     print('Initial State created',flush=True)
 
     #Dynamics
-    psit = propagate_state(cfg,psi0,build_unitary)
-    print(psit.shape)
+    #psit = propagate_state(cfg,psi0,build_unitary)
+    #print(psit.shape)
     #np.savez(f"./della_slurm_runs/h{cfg.h}_J{cfg.J}_ql_N{cfg.NQL}.npz",result)
     
     #calculate expectation values
@@ -58,14 +58,23 @@ def main():
     
     #Checking Will's package
     qlbit_1p, info = generate_quantum_like_bit(cfg.n,cfg.k,cfg.l)
-
+    qlbit_2p, info = generate_quantum_like_bit(cfg.n,cfg.k,cfg.lp)
+    qlbit_3p, info = generate_quantum_like_bit(cfg.n,cfg.k,cfg.l)
 
     # print(np.linalg.norm(qlbit_1-qlbit_1p,'fro'))
     # print(np.linalg.norm(qlbit_1-qlbit_2,'fro'))
     # print(np.linalg.norm(qlbit_2-qlbit_1p,'fro'))
 
     qlbit_1pmin,info_min = minimal_quotient((qlbit_1p,info))
+    qlbit_2pmin,info_min = minimal_quotient((qlbit_2p,info))
+    qlbit_3pmin,info_min = minimal_quotient((qlbit_3p,info))
     print(info_min)
+    min_cartpdt12 = cart_qldit(qlbit_2pmin,qlbit_3pmin)
+    min_cartpdt = cart_qldit(qlbit_1pmin,min_cartpdt12)
+    print(min_cartpdt.shape)
+
+    e_min_cartpdt, v_min_cartpdt = np.linalg.eigh(min_cartpdt)
+    print(e_min_cartpdt[-5:])
 
 if __name__ == "__main__":
     main()
