@@ -33,17 +33,21 @@ def main():
         print(f"  {key}: {value}")
     print("=" * 40)
 
-    # Load final states
-    psit = np.load(f"./della_slurm_runs/h{cfg.h}_J{cfg.J}_ql_N{cfg.NQL}.npz")['arr_0']
-    print(psit.shape)
-
     #calculate expectation values for local Z observable on the first site
-    mz0 = build_observable(cfg,'z',0)
-    expectation = expectation(psit, mz0)
-
-    #save expectation values
-
-    np.savez(f"./della_slurm_runs/h{cfg.h}_J{cfg.J}_ql_N{cfg.NQL}_expectation.npz",expectation)
-
+    mz = []
+    for j in range(cfg.NQL):
+        mz.append(build_observable(cfg,'z',j))
+    
+    expectation_mz = np.zeros((cfg.timesteps+1, cfg.NQL+2))  # Store expectation values for each site and time step
+    for h in [0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0]:
+        # Load final states
+        psit = np.load(f"./della_slurm_runs/h{h}_J{cfg.J}_ql_N{cfg.NQL}.npz")['arr_0']
+        for j in range(len(mz)):
+            expectation_mz[:,j] = expectation(psit, mz[j])
+        expectation_mz[:,-1] = np.arange(cfg.timesteps+1)  # Add time steps as the last column
+        expectation_mz[:,-2] = np.mean(expectation_mz[:,:-2], axis=1)  # Add mean expectation values as the second-to-last column
+        #save expectation values
+        np.savez(f"./della_slurm_runs/h{h}_J{cfg.J}_ql_N{cfg.NQL}_expectation.npz",expectation_mz)
+    
 if __name__ == "__main__":
     main()
