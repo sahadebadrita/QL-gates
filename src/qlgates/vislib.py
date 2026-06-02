@@ -164,3 +164,67 @@ def visgraph(R, n, filename, fig_label):
     plt.savefig('visgraph_%s.pdf'%(filename))
     plt.show()
     
+def simpleplot(
+    x,
+    y,
+    filename=None,
+    show=False,
+    xlabel="x",
+    ylabel="y",
+    title=None,
+    marker="o",
+    linestyle="-",
+    figsize=(6, 4),
+    dpi=900,
+    grid=True,
+):
+    """
+    Simple plotting utility for a single curve.
+
+    Parameters
+    ----------
+    x, y : array-like
+        Data to plot.
+    filename : str, optional
+        Output file name. If None, figure is not saved.
+    show : bool, optional
+        Display figure.
+    xlabel, ylabel : str
+        Axis labels.
+    title : str, optional
+        Plot title.
+    marker : str
+        Marker style.
+    linestyle : str
+        Line style.
+    figsize : tuple
+        Figure size in inches.
+    dpi : int
+        Resolution for saved figure.
+    grid : bool
+        Show grid.
+    """
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    ax.plot(x, y, marker=marker, linestyle=linestyle)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    if title is not None:
+        ax.set_title(title)
+
+    if grid:
+        ax.grid(True)
+
+    fig.tight_layout()
+
+    if filename is not None:
+        fig.savefig(filename, dpi=dpi, bbox_inches="tight")
+
+    if show:
+        plt.show()
+
+    plt.close(fig)
+    
