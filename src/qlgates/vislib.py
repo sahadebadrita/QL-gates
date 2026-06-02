@@ -13,6 +13,8 @@ import igraph as ig
 import networkx as nx
 from concurrent.futures import ProcessPoolExecutor
 from scipy import sparse
+from pathlib import Path
+plt.style.use(Path(__file__).parent / "../styles/base.mplstyle")
 
 def plot_normalized_density_of_states(all_eigenvalues, bin_width, top_d,fname,fig_label):
     """
