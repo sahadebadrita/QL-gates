@@ -53,8 +53,8 @@ def main():
     for h in [0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0]:    
         print(f"Running simulation for h={h}...")
         if Trotter:
-            Ug = transverse_ising_trotter(cfg.NQL, cfg.J, h, cfg.deltat)
-            psit = propagate_state_classical(cfg, psi0, Ug)
+            #Ug = transverse_ising_trotter(cfg.NQL, cfg.J, h, cfg.deltat)
+            psit = propagate_state_classical(cfg, psi0)
         else:
             H = transverse_field_ising(cfg.NQL, h, cfg.J)
             psit = evolve_times(H, psi0, times)
