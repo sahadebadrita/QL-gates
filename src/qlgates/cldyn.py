@@ -115,7 +115,7 @@ def exact_unitary(NQL, J, h, deltat):
     U_exact = expm(-1j * H * deltat)    
     return U_exact
 
-def propagate_state_classical(cfg:Config, psi: np.ndarray) -> np.ndarray:
+def propagate_state_classical(cfg:Config, psi: np.ndarray, Ug) -> np.ndarray:
     #!!!Add unitary argument (Ug) to cfg and pass it here instead of building it inside this function. This way we can test with different unitaries (e.g. identity for norm preservation test).
     """
     Propagate an initial quantum state through time using the hamiltonian model evolution operator.
@@ -129,7 +129,7 @@ def propagate_state_classical(cfg:Config, psi: np.ndarray) -> np.ndarray:
     """
     logging.info('Propagate_state')
     Ntot = 2 ** cfg.NQL
-    Ug = transverse_ising_trotter(cfg.NQL, cfg.J, cfg.h, cfg.deltat)
+    #Ug = transverse_ising_trotter(cfg.NQL, cfg.J, cfg.h, cfg.deltat)
     #Ug = build_unitary(cfg)
     psit = np.empty((Ntot,cfg.timesteps),dtype=complex)
     psit[:,0] = psi
@@ -321,9 +321,9 @@ def evolve_times(H, psi0, times):
     Returns:
     list: List of evolved state vectors.
     """
-    states = []
-    for t in times:
-        states.append(expm(-1j * H * t) @ psi0)
+    states = np.empty((len(psi0), len(times)), dtype=complex)
+    for i, t in enumerate(times):
+        states[:,i] = expm(-1j * H * t) @ psi0
     return states
 
 def local_sz(N, site):

@@ -215,6 +215,3 @@ def simpleplot(x,y,filename=None,
     if show:
         plt.show()
     plt.close(fig)
-
-
-    

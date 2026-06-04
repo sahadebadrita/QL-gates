@@ -1,2 +1,2 @@
 qlgates
-visualization
+styles
