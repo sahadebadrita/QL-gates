@@ -164,14 +164,8 @@ def visgraph(R, n, filename, fig_label):
     plt.savefig('visgraph_%s.pdf'%(filename))
     plt.show()
     
-def simpleplot(
-    x,
-    y,
-    filename=None,
-    show=False,
-    xlabel="x",
-    ylabel="y",
-    title=None,
+def simpleplot(x,y,filename=None,
+    show=False,xlabel="x",ylabel="y",title=None,
     marker="o",
     linestyle="-",
     figsize=(6, 4),
@@ -206,25 +200,18 @@ def simpleplot(
     """
 
     fig, ax = plt.subplots(figsize=figsize)
-
     ax.plot(x, y, marker=marker, linestyle=linestyle)
-
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-
+    
     if title is not None:
         ax.set_title(title)
-
     if grid:
         ax.grid(True)
-
     fig.tight_layout()
-
+    
     if filename is not None:
         fig.savefig(filename, dpi=dpi, bbox_inches="tight")
-
     if show:
         plt.show()
-
     plt.close(fig)
-    

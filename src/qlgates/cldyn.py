@@ -129,7 +129,10 @@ def propagate_state_classical(cfg:Config, psi: np.ndarray) -> np.ndarray:
     """
     logging.info('Propagate_state')
     Ntot = 2 ** cfg.NQL
-    Ug = transverse_ising_trotter(cfg.NQL, cfg.J, cfg.h, cfg.deltat)
+    if cfg.model == 'transverse':
+        Ug = transverse_ising_trotter(cfg.NQL, cfg.J, cfg.h, cfg.deltat)
+    else:
+        raise ValueError(f"Unknown model: {cfg.model}")
     #Ug = build_unitary(cfg)
     psit = np.empty((Ntot,cfg.timesteps),dtype=complex)
     psit[:,0] = psi
@@ -321,9 +324,9 @@ def evolve_times(H, psi0, times):
     Returns:
     list: List of evolved state vectors.
     """
-    states = []
-    for t in times:
-        states.append(expm(-1j * H * t) @ psi0)
+    states = np.empty((len(psi0), len(times)), dtype=complex)
+    for i, t in enumerate(times):
+        states[:,i] = expm(-1j * H * t) @ psi0
     return states
 
 def local_sz(N, site):

@@ -4,6 +4,7 @@ src/qlgates/__init__.py
 src/qlgates/checks.py
 src/qlgates/cldyn.py
 src/qlgates/config.py
+src/qlgates/constants.py
 src/qlgates/gates.py
 src/qlgates/hamiltonians.py
 src/qlgates/helpers.py
@@ -11,13 +12,14 @@ src/qlgates/qcktutils.py
 src/qlgates/qlgraphs.py
 src/qlgates/run_dynamics.py
 src/qlgates/toolbox.py
+src/qlgates/vislib.py
 src/qlgates.egg-info/PKG-INFO
 src/qlgates.egg-info/SOURCES.txt
 src/qlgates.egg-info/dependency_links.txt
 src/qlgates.egg-info/requires.txt
 src/qlgates.egg-info/top_level.txt
-src/visualization/vislib.py
 tests/test_cldyn.py
 tests/test_gates.py
+tests/test_helpers.py
 tests/test_qldyn.py
 tests/test_qlgraphs.py
