@@ -81,3 +81,19 @@ def expectation(psi, O):
     for i in range(m):
         expectation[i] = np.vdot(psi[:, i], O @ psi[:, i]).real
     return expectation
+
+def loschmidt_amplitude(psi0, psit):
+    """
+    Taken from the paper "Dynmaical Quantum Phase Transitions: a review" by Markus Heyl, arXiv:1801.07016.
+    Calculate the Loschmidt amplitude <psi0|psit>.
+    Parameters:
+    psi0 : np.ndarray - Initial state vector of shape (d,).
+    psit : np.ndarray - Final state vector of shape (d,timesteps).
+    Returns:
+    amplitude : complex - The Loschmidt amplitude.
+    """
+    G = np.zeros(psit.shape[1], dtype=complex)
+    for i in range(psit.shape[1]):
+        G[i] = np.vdot(psi0, psit[:, i])
+    L = np.abs(G) ** 2
+    return L

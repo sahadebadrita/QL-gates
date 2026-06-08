@@ -17,5 +17,6 @@ pip install -e . --quiet
 # ── Run ───────────────────────────────────────────────────────────
 echo "Running simulation with config: $CONFIG"
 #python scripts/qldynamics_simulations.py --config "$CONFIG"
-python scripts/cldyn_sim.py --config "$CONFIG"
+#python scripts/cldyn_sim.py --config "$CONFIG"
+python scripts/postprocessing.py --config "$CONFIG"
 echo "Done."

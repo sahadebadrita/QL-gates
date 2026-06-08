@@ -1,7 +1,9 @@
 # QL graph
-n: 16
-k: 12
+n: 32
+k: 20
 d: 1
+l: 5
+lp: 4
 coupling: true
 periodic: false
 full: false
@@ -15,7 +17,7 @@ deltat: 0.1
 
 # Hamiltonian
 J: -1.0
-h: 1.6
+h: 0.2
 
 # Meta
 debug: false
