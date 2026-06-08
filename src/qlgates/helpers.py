@@ -97,4 +97,4 @@ def loschmidt_amplitude(cfg,psi0, psit):
         G[i] = np.vdot(psi0, psit[:, i])
     L = np.abs(G) ** 2
     rate = -(1/cfg.NQL)*np.log(L)
-    return L
+    return L, rate
