@@ -7,7 +7,7 @@ from dataclasses import asdict
 from qlgates.config import Config
 from qlgates.run_dynamics import propagate_state, build_unitary
 from qlgates.qlgraphs import qldit, cart_qldit
-from qlgates.helpers import build_observable, expectation
+from qlgates.helpers import build_observable, expectation, loschmidt_amplitude
 from qlgates.vislib import simpleplot
 
 def main():
@@ -34,29 +34,41 @@ def main():
         print(f"  {key}: {value}")
     print("=" * 40)
 
-    #calculate expectation values for local Z observable on the first site
-    mz = []
-    for j in range(cfg.NQL):
-        mz.append(build_observable(cfg,'z',j))
-    M_eq = []  # Store equilibrium values for each site
-    ratios = []
-    expectation_mz = np.zeros((cfg.timesteps, cfg.NQL+2))  # Store expectation values for each site and time step
-    for h in [0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0]:
-        # Load final states
-        psit = np.load(f"./della_slurm_runs/h{h}_J{cfg.J}_ql_N{cfg.NQL}.npz")['arr_0']
-        for j in range(len(mz)):
-            expectation_mz[:,j] = expectation(psit, mz[j])
-        expectation_mz[:,-1] = np.arange(cfg.timesteps)  # Add time steps as the last column
-        expectation_mz[:,-2] = np.mean(expectation_mz[:,:-2], axis=1)  # Add mean expectation values as the second-to-last column
-        #save expectation values
-        np.savez(f"./della_slurm_runs/h{h}_J{cfg.J}_ql_N{cfg.NQL}_expectation.npz",expectation_mz)
-        M_eq.append(np.mean(np.abs(expectation_mz[int(0.0*cfg.timesteps):,-2])))  # Mean of the absolute values of the mean expectation values in the last 20% of time steps
-        ratios.append(abs(h/cfg.J))  # Ratio of the equilibrium value at this h to the equilibrium value at the smallest h
-    Meq = np.array(M_eq)
-    simpleplot(ratios,Meq,
-    filename=f"./della_slurm_runs/T{cfg.timesteps * cfg.deltat}_dt{cfg.deltat}_J{cfg.J}_ql_N{cfg.NQL}_magnetization.png",
-    xlabel="h/J",
-    ylabel="Magnetization (time-averaged)",
-    title=fr"$\delta t = {cfg.deltat},\; T = {cfg.timesteps * cfg.deltat}\,\mathrm{{fs}}$")
+    psit = np.load(f"./h{cfg.h}_J{cfg.J}_cl_N{cfg.NQL}.npz")['arr_0']
+    l_ampl = loschmidt_amplitude(psit[:,0], psit)
+
+    print(f"Loschmidt amplitude at t=0: {l_ampl[0]}", len(l_ampl))
+    print(f"Loschmidt amplitude at t=T: {l_ampl[-1]}")
+    # #calculate expectation values for local Z observable on the first site
+    # mz = []
+    # for j in range(cfg.NQL):
+    #     mz.append(build_observable(cfg,'z',j))
+    # M_eq = []  # Store equilibrium values for each site
+    # ratios = []
+    # expectation_mz = np.zeros((cfg.timesteps, cfg.NQL+2))  # Store expectation values for each site and time step
+    # for h in [0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0]:
+    #     # Load final states
+    #     psit = np.load(f"./della_slurm_runs/h{h}_J{cfg.J}_ql_N{cfg.NQL}.npz")['arr_0']
+    #     for j in range(len(mz)):
+    #         expectation_mz[:,j] = expectation(psit, mz[j])
+    #     expectation_mz[:,-1] = np.arange(cfg.timesteps)  # Add time steps as the last column
+    #     expectation_mz[:,-2] = np.mean(expectation_mz[:,:-2], axis=1)  # Add mean expectation values as the second-to-last column
+    #     #save expectation values
+    #     np.savez(f"./della_slurm_runs/h{h}_J{cfg.J}_ql_N{cfg.NQL}_expectation.npz",expectation_mz)
+    #     M_eq.append(np.mean(np.abs(expectation_mz[int(0.0*cfg.timesteps):,-2])))  # Mean of the absolute values of the mean expectation values in the last 20% of time steps
+    #     ratios.append(abs(h/cfg.J))  # Ratio of the equilibrium value at this h to the equilibrium value at the smallest h
+    # Meq = np.array(M_eq)
+    # simpleplot(ratios,Meq,
+    # filename=f"./della_slurm_runs/T{cfg.timesteps * cfg.deltat}_dt{cfg.deltat}_J{cfg.J}_ql_N{cfg.NQL}_magnetization.png",
+    # xlabel="h/J",
+    # ylabel="Magnetization (time-averaged)",
+    # title=fr"$\delta t = {cfg.deltat},\; T = {cfg.timesteps * cfg.deltat}\,\mathrm{{fs}}$")
+    t = np.linspace(0, cfg.timesteps * cfg.deltat, cfg.timesteps)  # Time array for plotting
+    print(len(t),t[-1])
+    simpleplot(t,l_ampl,
+    filename=f"./T{cfg.timesteps * cfg.deltat}_dt{cfg.deltat}_h{cfg.h}_J{cfg.J}_cl_N{cfg.NQL}_loschmidt.png",
+    xlabel="Time (fs)",
+    ylabel="Loschmidt amplitude",
+    title=fr"$\delta t = {cfg.deltat},\; T = {cfg.timesteps * cfg.deltat}\,\mathrm{{fs}}$")    
 if __name__ == "__main__":
     main()
