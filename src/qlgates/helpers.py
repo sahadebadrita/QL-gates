@@ -84,7 +84,7 @@ def expectation(psi, O):
 
 def loschmidt_amplitude(cfg,psi0, psit):
     """
-    Taken from the paper "Dynmaical Quantum Phase Transitions: a review" by Markus Heyl, arXiv:1801.07016.
+    Taken from the paper "Dynamical Quantum Phase Transitions: a review" by Markus Heyl, arXiv:1801.07016.
     Calculate the Loschmidt amplitude <psi0|psit>.
     Parameters:
     psi0 : np.ndarray - Initial state vector of shape (d,).
@@ -96,5 +96,5 @@ def loschmidt_amplitude(cfg,psi0, psit):
     for i in range(psit.shape[1]):
         G[i] = np.vdot(psi0, psit[:, i])
     L = np.abs(G) ** 2
-    rate = -(1/cfg.NQL)*np.log(L)
+    rate = -(1.0/cfg.NQL)*np.log(L)
     return L, rate
