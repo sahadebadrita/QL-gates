@@ -5,7 +5,7 @@ import igraph as ig
 import networkx as nx
 from dataclasses import asdict
 from qlgates.config import Config
-from qlgates.run_dynamics import propagate_state, build_unitary
+from qlgates.run_dynamics import build_ground_state, propagate_state, build_unitary, build_initstate
 from qlgates.qlgraphs import qldit, cart_qldit
 from core.graph_generation import generate_quantum_like_bit
 from core.contraction import minimal_quotient
@@ -45,6 +45,8 @@ def main():
     psi0 = psi0 / np.linalg.norm(psi0)  # normalize the state vector
     print('Initial State created',flush=True)
 
+
+    psi0_new = build_ground_state(cfg,H)    
     #Dynamics
     #psit = propagate_state(cfg,psi0,build_unitary)
     #print(psit.shape)

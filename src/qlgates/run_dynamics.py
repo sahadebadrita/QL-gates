@@ -74,9 +74,21 @@ def bell_state(cfg: Config, psi0, kind="phi_plus"):
     psi_bell = Ug @ psi0
     return psi_bell
 
+def build_ground_state(cfg: Config,H):
+    """
+    Placeholder function to build the ground state of the system. 
+    In practice, this would involve diagonalizing the Hamiltonian and taking the lowest energy eigenstate.
+    For now, it just returns the input state (which should be |00...0⟩).
+    """
+    evals, evecs = np.linalg.eigh(H)
+    psi0 = evecs[:,0]  # Ground state is the eigenvector corresponding to the lowest eigenvalue
+    return psi0
+
+
 _INITSTATE_REGISTRY = {
     "all_zero": build_transverse_unitary,
     "bell_state":         bell_state,
+    "ground_state":  build_ground_state,  # Placeholder, will be replaced by actual ground state builder
 }
 
 def build_initstate(cfg) -> np.ndarray:
