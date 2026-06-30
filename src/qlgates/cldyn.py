@@ -83,7 +83,7 @@ def transverse_ising_trotter(NQL, J, h, deltat):
     Ug = URx @ Uzz0 @ Uzz1 @ Uzz0 @ URx
     return Ug
 
-def exact_unitary(NQL, J, h, deltat):
+def exact_unitary(NQL, J, h, deltat):#remove this!! Do not use this!!
     """
     Exact U = exp(-i H dt) via direct matrix exponentiation, for comparison.
     H = -J * sum_i Z_i Z_{i+1}  +  h * sum_i X_i   (open chain)
@@ -103,9 +103,7 @@ def exact_unitary(NQL, J, h, deltat):
         ZZi = ops[0]
         for op in ops[1:]:
             ZZi = np.kron(ZZi, op)
-        print(f"ZZ term for sites {i} and {i+1} added to Hamiltonian", flush=True)
-        print(ZZi.real)
-        H -= J * ZZi
+        H += J * ZZi
 
     # X terms
     for i in range(NQL):
@@ -114,8 +112,6 @@ def exact_unitary(NQL, J, h, deltat):
         Xi = ops[0]
         for op in ops[1:]:
             Xi = np.kron(Xi, op)
-        print(f"X term for site {i} added to Hamiltonian", flush=True)
-        print(Xi.real)
         H += h * Xi
     U_exact = expm(-1j * H * deltat)    
     return H, U_exact
@@ -279,7 +275,7 @@ def transverse_field_ising(N, J, h):
         ops = [id2] * N
         ops[i]     = sz
         ops[i + 1] = sz
-        H += -J * kron_N(ops)
+        H += J * kron_N(ops)
 
     # --- Transverse field X term ---
     for i in range(N):
@@ -348,6 +344,41 @@ def evolve_exact(H, psi0, times):
     states = np.empty((len(psi0), len(times)), dtype=complex)
     for i, t in enumerate(times):
         states[:,i] = expm(-1j * H * t) @ psi0
+    return states
+
+def exact_eigen(H, psi0, times):
+    """
+    Evolve psi0 under a time-independent Hamiltonian H using
+    exact diagonalization.
+
+    Parameters
+    ----------
+    H : ndarray
+        Hamiltonian matrix.
+    psi0 : ndarray
+        Initial state vector.
+    times : array-like
+        Times at which to evaluate the state.
+
+    Returns
+    -------
+    states : ndarray
+        Shape (dim, len(times)).
+        states[:, i] is the state at time times[i].
+    """
+    print("Using exact diagonalization.",H.shape,psi0.shape,flush=True)
+    # Diagonalize H
+    evals, evecs = np.linalg.eigh(H)
+
+    # Expand initial state in eigenbasis
+    coeffs = evecs.conj().T @ psi0
+
+    states = np.empty((len(psi0), len(times)), dtype=complex)
+
+    for i, t in enumerate(times):
+        phases = np.exp(-1j * evals * t)
+        states[:, i] = evecs @ (phases * coeffs)
+
     return states
 
 def local_sz(N, site):
