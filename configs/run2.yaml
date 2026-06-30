@@ -10,11 +10,11 @@ CartPdt: true
 
 # Model
 model: "transverse"
-timesteps: 1000
-deltat: 0.05
+timesteps: 100
+deltat: 0.1
 
 # Hamiltonian
-J: 1.0
+J: -1.0
 h: 0.5
 
 # Meta

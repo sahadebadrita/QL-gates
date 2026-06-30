@@ -3,12 +3,13 @@ import argparse
 import numpy as np
 import igraph as ig
 import networkx as nx
+from scipy.linalg import expm
 from qlgates.constants import *
 from dataclasses import asdict
 from qlgates.config import Config
 from qlgates.run_dynamics import propagate_state, build_unitary
 from qlgates.qlgraphs import qldit, cart_qldit
-from qlgates.cldyn import exact_unitary, transverse_field_ising, initial_state_z_up,evolve_times, propagate_state_classical, transverse_ising_trotter
+from qlgates.cldyn import transverse_field_ising, initial_state_z_up,evolve_times, propagate_state_classical, transverse_ising_trotter
 from qlgates.vislib import simpleplot
 
 def main():
@@ -37,7 +38,9 @@ def main():
     Trotter = True
     times = np.arange(0, cfg.timesteps * cfg.deltat, cfg.deltat)
     
-    H,U = exact_unitary(cfg.NQL, cfg.J, 0.0, cfg.deltat)
+    #H,U = exact_unitary(cfg.NQL, cfg.J, 0.0, cfg.deltat) Delete this later
+    H = transverse_field_ising(cfg.NQL, cfg.J, cfg.h)
+    U = expm(-1j * H * cfg.deltat)
     print("Exact unitary built",flush=True)
     print(H.real)
     print(np.linalg.norm((H-H.T.conj()),'fro')) # Check if H is Hermitian

@@ -7,7 +7,7 @@ lp: 4
 coupling: true
 periodic: false
 full: false
-NQL: 3
+NQL: 2
 CartPdt: true
 
 # Model

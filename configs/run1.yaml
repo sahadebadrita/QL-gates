@@ -5,13 +5,13 @@ d: 1
 coupling: true
 periodic: false
 full: false
-NQL: 3
+NQL: 10
 CartPdt: true
 
 # Model
 model: "transverse"
-timesteps: 1000
-deltat: 0.05
+timesteps: 100
+deltat: 0.1
 
 # Hamiltonian
 J: -1.0

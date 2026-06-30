@@ -89,3 +89,4 @@ venv/
 *.npz
 *.png
 *.out
+*.txt
