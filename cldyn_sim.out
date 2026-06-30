@@ -11,15 +11,17 @@ Simulation parameters
   coupling: True
   periodic: False
   full: False
-  NQL: 8
+  NQL: 10
   CartPdt: True
   model: transverse
   timesteps: 1000
   deltat: 0.05
-  J: -1.0
+  J: 1.0
   h: 0.5
 ========================================
 Local observables created
 Running simulation for h=0.5...
+Loschmidt amplitude and rate calculated for h=0.5.
 Running simulation for h=2.0...
+Loschmidt amplitude and rate calculated for h=2.0.
 Done.

@@ -5,6 +5,7 @@ from scipy.linalg import expm
 from qlgates.helpers import kron_power
 from qlgates.config import Config
 from qlgates.gates import get_Vg, rzz_matrix
+from qlgates.constants import X, Z, I2
 
 def transverse_ising_trotter(NQL, J, h, deltat):
     """
@@ -82,21 +83,21 @@ def transverse_ising_trotter(NQL, J, h, deltat):
     Ug = URx @ Uzz0 @ Uzz1 @ Uzz0 @ URx
     return Ug
 
-def exact_unitary(NQL, J, h, deltat):
+def exact_unitary(NQL, J, h, deltat):#remove this!! Do not use this!!
     """
     Exact U = exp(-i H dt) via direct matrix exponentiation, for comparison.
     H = -J * sum_i Z_i Z_{i+1}  +  h * sum_i X_i   (open chain)
     """
     dim = 2 ** NQL
-    I = np.eye(2, dtype=complex)
-    X = np.array([[0, 1], [1, 0]], dtype=complex)
-    Z = np.array([[1, 0], [0, -1]], dtype=complex)
+    #I = np.eye(2, dtype=complex)
+    #X = np.array([[0, 1], [1, 0]], dtype=complex)
+    #Z = np.array([[1, 0], [0, -1]], dtype=complex)
 
     H = np.zeros((dim, dim), dtype=complex)
 
     # ZZ terms
     for i in range(NQL - 1):
-        ops = [I] * NQL
+        ops = [I2] * NQL
         ops[i]     = Z
         ops[i + 1] = Z
         ZZi = ops[0]
@@ -106,14 +107,14 @@ def exact_unitary(NQL, J, h, deltat):
 
     # X terms
     for i in range(NQL):
-        ops = [I] * NQL
+        ops = [I2] * NQL
         ops[i] = X
         Xi = ops[0]
         for op in ops[1:]:
             Xi = np.kron(Xi, op)
         H += h * Xi
     U_exact = expm(-1j * H * deltat)    
-    return U_exact
+    return H, U_exact
 
 def propagate_state_classical(cfg:Config, psi: np.ndarray) -> np.ndarray:
     #!!!Add unitary argument (Ug) to cfg and pass it here instead of building it inside this function. This way we can test with different unitaries (e.g. identity for norm preservation test).
@@ -274,7 +275,7 @@ def transverse_field_ising(N, J, h):
         ops = [id2] * N
         ops[i]     = sz
         ops[i + 1] = sz
-        H += -J * kron_N(ops)
+        H += J * kron_N(ops)
 
     # --- Transverse field X term ---
     for i in range(N):
@@ -327,6 +328,57 @@ def evolve_times(H, psi0, times):
     states = np.empty((len(psi0), len(times)), dtype=complex)
     for i, t in enumerate(times):
         states[:,i] = expm(-1j * H * t) @ psi0
+    return states
+
+def evolve_exact(H, psi0, times):
+    """
+    Evolve the state psi0 under Hamiltonian H for a list of times.
+
+    Parameters:
+    H (numpy.ndarray): Hamiltonian matrix.
+    psi0 (numpy.ndarray): Initial state vector.
+    times (list): List of times.
+    Returns:
+    list: List of evolved state vectors.
+    """
+    states = np.empty((len(psi0), len(times)), dtype=complex)
+    for i, t in enumerate(times):
+        states[:,i] = expm(-1j * H * t) @ psi0
+    return states
+
+def exact_eigen(H, psi0, times):
+    """
+    Evolve psi0 under a time-independent Hamiltonian H using
+    exact diagonalization.
+
+    Parameters
+    ----------
+    H : ndarray
+        Hamiltonian matrix.
+    psi0 : ndarray
+        Initial state vector.
+    times : array-like
+        Times at which to evaluate the state.
+
+    Returns
+    -------
+    states : ndarray
+        Shape (dim, len(times)).
+        states[:, i] is the state at time times[i].
+    """
+    print("Using exact diagonalization.",H.shape,psi0.shape,flush=True)
+    # Diagonalize H
+    evals, evecs = np.linalg.eigh(H)
+
+    # Expand initial state in eigenbasis
+    coeffs = evecs.conj().T @ psi0
+
+    states = np.empty((len(psi0), len(times)), dtype=complex)
+
+    for i, t in enumerate(times):
+        phases = np.exp(-1j * evals * t)
+        states[:, i] = evecs @ (phases * coeffs)
+
     return states
 
 def local_sz(N, site):
