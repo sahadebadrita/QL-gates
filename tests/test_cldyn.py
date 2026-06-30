@@ -3,6 +3,7 @@ Unit tests for cldyn.py functions.
 """
 import numpy as np
 import pytest
+from scipy.linalg import expm
 from qlgates.cldyn import initial_state_z_up, transverse_field_ising, transverse_ising_trotter, exact_unitary, propagate_state_classical
 from qlgates.helpers import kron_power, computational_basis_state
 from qlgates.config import Config
@@ -31,7 +32,8 @@ def test_trotter_converges_to_exact(NQL):
     """
     J, h, dt = -1.0, 0.5, 0.01
     Ug     = transverse_ising_trotter(NQL, J, h, dt)
-    Uexact = exact_unitary(NQL, J, h, dt)
+    Hexact = transverse_field_ising(NQL, J, h)
+    Uexact = expm(-1j * Hexact * dt) 
     err = np.max(np.abs(Ug - Uexact))
     assert err < 1e-5, f"Trotter doesn't match exact for NQL={NQL}: max error = {err:.2e}"
 
