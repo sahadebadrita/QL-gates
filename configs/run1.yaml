@@ -5,7 +5,7 @@ d: 1
 coupling: true
 periodic: false
 full: false
-NQL: 10
+NQL: 4
 CartPdt: true
 
 # Model
